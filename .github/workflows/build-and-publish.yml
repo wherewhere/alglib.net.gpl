@@ -3,6 +3,7 @@ name: build and publish
 on:
   push:
     branches: [myget]
+    tags: ["*.*.*"]
   pull_request:
     branches: [myget]
   workflow_dispatch:
@@ -14,7 +15,7 @@ jobs:
   build-and-publish:
     runs-on: windows-latest
     env:
-      Solution_Name: alglib.net.sln
+      Solution_Name: alglib.net.slnx
 
     steps:
       - name: Checkout
@@ -27,19 +28,25 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Install Dependencies (SIMD)
+        run: dotnet restore $Solution_Name -p:Configuration=Release.SIMD
+
+      - name: Pack (SIMD)
+        run: dotnet pack $Solution_Name --no-restore -c Release.SIMD -o "nugets"
+
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
         with:
           msbuild-architecture: x64
 
       - name: Install Dependencies
-        run: msbuild $env:Solution_Name /m /t:Restore
+        run: msbuild $env:Solution_Name /m /t:Restore /p:Configuration=Release
 
       - name: Pack
-        run: msbuild $env:Solution_Name /m /t:Pack /p:Configuration=Release /p:PackageOutputPath=../../nugets
+        run: msbuild $env:Solution_Name /m /t:Pack /p:Configuration=Release /p:PackageOutputPath=../nugets
 
       - name: Publish
-        if: ${{ github.event_name == 'push' && github.ref_name == 'myget' }}
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         run: dotnet nuget push nugets/**.nupkg --source $env:NUGET_SOURCE --skip-duplicate --api-key $env:MYGET_KEY
         env:
           NUGET_SOURCE: https://www.myget.org/F/where/api/v3/index.json

@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Debug.SIMD" />
+    <BuildType Name="Release" />
+    <BuildType Name="Release.SIMD" />
+  </Configurations>
+  <Project Path="alglib.net/alglib.net.csproj" />
+</Solution>

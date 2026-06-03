@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <Configurations>Debug;Release;Debug.SIMD;Release.SIMD</Configurations>
+    <NoWarn>$(NoWarn);CS1591;CS8981</NoWarn>
+    <SuppressTfmSupportBuildWarnings>false</SuppressTfmSupportBuildWarnings>
+	  <TargetFrameworks>net5.0;net6.0;net7.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">True</IsAotCompatible>
+    <IsTrimmable Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">True</IsTrimmable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="$(Configuration.EndsWith('.SIMD'))">
+      <PropertyGroup Condition="$(Configuration.EndsWith('.SIMD'))">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>$(AssemblyName).simd</AssemblyName>
+        <DefineConstants>TRACE;ALGLIB_USE_SIMD</DefineConstants>
+        <Product>ALGLIB for C# (unsafe with NET5 SIMD intrinsics)</Product>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
+        <Product>ALGLIB for C# (managed)</Product>
+        <TargetFrameworks>$(TargetFrameworks);net2.0;net4.0-client;netcoreapp2.1;netstandard2.0;uap10.0.15138.0</TargetFrameworks>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <None Include="..\icon.png" Pack="true" PackagePath="$(PackageIcon)" />
+    <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)" />
+  </ItemGroup>
+
+</Project>

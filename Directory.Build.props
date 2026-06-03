@@ -12,6 +12,7 @@
     <IncludeSymbols>True</IncludeSymbols>
     <LangVersion>latest</LangVersion>
     <PackageIconUrl>https://raw.githubusercontent.com/wherewhere/alglib.net.gpl/myget/src/alglib.net/images/icon.png</PackageIconUrl>
+    <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://www.alglib.net/</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>https://github.com/wherewhere/alglib.net.gpl/releases</PackageReleaseNotes>
