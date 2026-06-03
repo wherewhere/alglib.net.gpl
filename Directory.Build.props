@@ -22,7 +22,7 @@
     <RepositoryUrl>https://github.com/wherewhere/alglib.net.gpl</RepositoryUrl>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Title>alglib.net</Title>
-    <Version>3.19.0</Version>
+    <Version>4.07.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'uap10.0.15138.0'">

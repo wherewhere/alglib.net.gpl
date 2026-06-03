@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.19.0 (source code generated 2022-06-07)
+ALGLIB 4.07.0 (source code generated 2025-12-29)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -17,9 +17,11 @@ A copy of the GNU General Public License is available at
 http://www.fsf.org/licensing/licenses
 >>> END OF LICENSE >>>
 *************************************************************************/
+#pragma warning disable 1691
 #pragma warning disable 162
 #pragma warning disable 164
 #pragma warning disable 219
+#pragma warning disable 8981
 using System;
 
 public partial class alglib
@@ -42,20 +44,15 @@ public partial class alglib
     It should be noted that, unlike LDA, PCA does not use class labels.
 
     INPUT PARAMETERS:
-        X           -   dataset, array[0..NPoints-1,0..NVars-1].
+        X           -   dataset, array[NPoints,NVars].
                         matrix contains ONLY INDEPENDENT VARIABLES.
         NPoints     -   dataset size, NPoints>=0
         NVars       -   number of independent variables, NVars>=1
 
     OUTPUT PARAMETERS:
-        Info        -   return code:
-                        * -4, if SVD subroutine haven't converged
-                        * -1, if wrong parameters has been passed (NPoints<0,
-                              NVars<1)
-                        *  1, if task is solved
-        S2          -   array[0..NVars-1]. variance values corresponding
+        S2          -   array[NVars]. variance values corresponding
                         to basis vectors.
-        V           -   array[0..NVars-1,0..NVars-1]
+        V           -   array[NVars,NVars]
                         matrix, whose columns store basis vectors.
 
       ! FREE EDITION OF ALGLIB:
@@ -75,8 +72,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -85,20 +82,46 @@ public partial class alglib
       -- ALGLIB --
          Copyright 25.08.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void pcabuildbasis(double[,] x, int npoints, int nvars, out int info, out double[] s2, out double[,] v)
+    public static void pcabuildbasis(double[,] x, int npoints, int nvars, out double[] s2, out double[,] v)
     {
-        info = 0;
         s2 = new double[0];
         v = new double[0,0];
-        pca.pcabuildbasis(x, npoints, nvars, ref info, ref s2, ref v, null);
+        pca.pcabuildbasis(x, npoints, nvars, ref s2, ref v, null);
     }
     
-    public static void pcabuildbasis(double[,] x, int npoints, int nvars, out int info, out double[] s2, out double[,] v, alglib.xparams _params)
+    public static void pcabuildbasis(double[,] x, int npoints, int nvars, out double[] s2, out double[,] v, alglib.xparams _params)
     {
-        info = 0;
         s2 = new double[0];
         v = new double[0,0];
-        pca.pcabuildbasis(x, npoints, nvars, ref info, ref s2, ref v, _params);
+        pca.pcabuildbasis(x, npoints, nvars, ref s2, ref v, _params);
+    }
+            
+    public static void pcabuildbasis(double[,] x, out double[] s2, out double[,] v)
+    {
+        int npoints;
+        int nvars;
+    
+        s2 = new double[0];
+        v = new double[0,0];
+        npoints = ap.rows(x);
+        nvars = ap.cols(x);
+        pca.pcabuildbasis(x, npoints, nvars, ref s2, ref v, null);
+    
+        return;
+    }
+            
+    public static void pcabuildbasis(double[,] x, out double[] s2, out double[,] v, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+    
+        s2 = new double[0];
+        v = new double[0,0];
+        npoints = ap.rows(x);
+        nvars = ap.cols(x);
+        pca.pcabuildbasis(x, npoints, nvars, ref s2, ref v, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -160,8 +183,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -182,6 +205,34 @@ public partial class alglib
         s2 = new double[0];
         v = new double[0,0];
         pca.pcatruncatedsubspace(x, npoints, nvars, nneeded, eps, maxits, ref s2, ref v, _params);
+    }
+            
+    public static void pcatruncatedsubspace(double[,] x, int nneeded, double eps, int maxits, out double[] s2, out double[,] v)
+    {
+        int npoints;
+        int nvars;
+    
+        s2 = new double[0];
+        v = new double[0,0];
+        npoints = ap.rows(x);
+        nvars = ap.cols(x);
+        pca.pcatruncatedsubspace(x, npoints, nvars, nneeded, eps, maxits, ref s2, ref v, null);
+    
+        return;
+    }
+            
+    public static void pcatruncatedsubspace(double[,] x, int nneeded, double eps, int maxits, out double[] s2, out double[,] v, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+    
+        s2 = new double[0];
+        v = new double[0,0];
+        npoints = ap.rows(x);
+        nvars = ap.cols(x);
+        pca.pcatruncatedsubspace(x, npoints, nvars, nneeded, eps, maxits, ref s2, ref v, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -250,8 +301,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -457,7 +508,7 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function serializes data structure to string.
+    This function serializes data structure to string/stream.
     
     Important properties of s_out:
     * it contains alphanumeric characters, dots, underscores, minus signs
@@ -466,14 +517,14 @@ public partial class alglib
     * although  serializer  uses  spaces and CR+LF as separators, you can 
       replace any separator character by arbitrary combination of spaces,
       tabs, Windows or Unix newlines. It allows flexible reformatting  of
-      the  string  in  case you want to include it into text or XML file. 
+      the  string in case you want to include it into a text or XML file. 
       But you should not insert separators into the middle of the "words"
-      nor you should change case of letters.
+      nor should you change the case of letters.
     * s_out can be freely moved between 32-bit and 64-bit systems, little
       and big endian machines, and so on. You can serialize structure  on
       32-bit machine and unserialize it on 64-bit one (or vice versa), or
       serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
-      serialize  it  in  C# version of ALGLIB and unserialize in C++ one, 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
       and vice versa.
     *************************************************************************/
     public static void mlpserialize(multilayerperceptron obj, out string s_out)
@@ -489,28 +540,24 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from string.
-    *************************************************************************/
-    public static void mlpunserialize(string s_in, out multilayerperceptron obj)
-    {
-        alglib.serializer s = new alglib.serializer();
-        obj = new multilayerperceptron();
-        s.ustart_str(s_in);
-        mlpbase.mlpunserialize(s, obj.innerobj, null);
-        s.stop();
-    }
-
-
-    /*************************************************************************
-    This function serializes data structure to stream.
+    This function serializes data structure to string/stream.
     
-    Data stream generated by this function is same as  string  representation
-    generated  by  string  version  of  serializer - alphanumeric characters,
-    dots, underscores, minus signs, which are grouped into words separated by
-    spaces and CR+LF.
-    
-    We recommend you to read comments on string version of serializer to find
-    out more about serialization of AlGLIB objects.
+    Important properties of s_out:
+    * it contains alphanumeric characters, dots, underscores, minus signs
+    * these symbols are grouped into words, which are separated by spaces
+      and Windows-style (CR+LF) newlines
+    * although  serializer  uses  spaces and CR+LF as separators, you can 
+      replace any separator character by arbitrary combination of spaces,
+      tabs, Windows or Unix newlines. It allows flexible reformatting  of
+      the  string in case you want to include it into a text or XML file. 
+      But you should not insert separators into the middle of the "words"
+      nor should you change the case of letters.
+    * s_out can be freely moved between 32-bit and 64-bit systems, little
+      and big endian machines, and so on. You can serialize structure  on
+      32-bit machine and unserialize it on 64-bit one (or vice versa), or
+      serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
+      and vice versa.
     *************************************************************************/
     public static void mlpserialize(multilayerperceptron obj, System.IO.Stream stream_out)
     {
@@ -524,9 +571,23 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from stream.
+    This function unserializes data structure from string/stream.
+    *************************************************************************/
+    public static void mlpunserialize(string s_in, out multilayerperceptron obj)
+    {
+        alglib.serializer s = new alglib.serializer();
+        obj = new multilayerperceptron();
+        s.ustart_str(s_in);
+        mlpbase.mlpunserialize(s, obj.innerobj, null);
+        s.stop();
+    }
+
+
+    /*************************************************************************
+    This function unserializes data structure from string/stream.
     *************************************************************************/
     public static void mlpunserialize(System.IO.Stream stream_in, out multilayerperceptron obj)
+    
     {
         alglib.serializer s = new alglib.serializer();
         obj = new multilayerperceptron();
@@ -2785,7 +2846,7 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function serializes data structure to string.
+    This function serializes data structure to string/stream.
     
     Important properties of s_out:
     * it contains alphanumeric characters, dots, underscores, minus signs
@@ -2794,14 +2855,14 @@ public partial class alglib
     * although  serializer  uses  spaces and CR+LF as separators, you can 
       replace any separator character by arbitrary combination of spaces,
       tabs, Windows or Unix newlines. It allows flexible reformatting  of
-      the  string  in  case you want to include it into text or XML file. 
+      the  string in case you want to include it into a text or XML file. 
       But you should not insert separators into the middle of the "words"
-      nor you should change case of letters.
+      nor should you change the case of letters.
     * s_out can be freely moved between 32-bit and 64-bit systems, little
       and big endian machines, and so on. You can serialize structure  on
       32-bit machine and unserialize it on 64-bit one (or vice versa), or
       serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
-      serialize  it  in  C# version of ALGLIB and unserialize in C++ one, 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
       and vice versa.
     *************************************************************************/
     public static void mlpeserialize(mlpensemble obj, out string s_out)
@@ -2817,28 +2878,24 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from string.
-    *************************************************************************/
-    public static void mlpeunserialize(string s_in, out mlpensemble obj)
-    {
-        alglib.serializer s = new alglib.serializer();
-        obj = new mlpensemble();
-        s.ustart_str(s_in);
-        mlpe.mlpeunserialize(s, obj.innerobj, null);
-        s.stop();
-    }
-
-
-    /*************************************************************************
-    This function serializes data structure to stream.
+    This function serializes data structure to string/stream.
     
-    Data stream generated by this function is same as  string  representation
-    generated  by  string  version  of  serializer - alphanumeric characters,
-    dots, underscores, minus signs, which are grouped into words separated by
-    spaces and CR+LF.
-    
-    We recommend you to read comments on string version of serializer to find
-    out more about serialization of AlGLIB objects.
+    Important properties of s_out:
+    * it contains alphanumeric characters, dots, underscores, minus signs
+    * these symbols are grouped into words, which are separated by spaces
+      and Windows-style (CR+LF) newlines
+    * although  serializer  uses  spaces and CR+LF as separators, you can 
+      replace any separator character by arbitrary combination of spaces,
+      tabs, Windows or Unix newlines. It allows flexible reformatting  of
+      the  string in case you want to include it into a text or XML file. 
+      But you should not insert separators into the middle of the "words"
+      nor should you change the case of letters.
+    * s_out can be freely moved between 32-bit and 64-bit systems, little
+      and big endian machines, and so on. You can serialize structure  on
+      32-bit machine and unserialize it on 64-bit one (or vice versa), or
+      serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
+      and vice versa.
     *************************************************************************/
     public static void mlpeserialize(mlpensemble obj, System.IO.Stream stream_out)
     {
@@ -2852,9 +2909,23 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from stream.
+    This function unserializes data structure from string/stream.
+    *************************************************************************/
+    public static void mlpeunserialize(string s_in, out mlpensemble obj)
+    {
+        alglib.serializer s = new alglib.serializer();
+        obj = new mlpensemble();
+        s.ustart_str(s_in);
+        mlpe.mlpeunserialize(s, obj.innerobj, null);
+        s.stop();
+    }
+
+
+    /*************************************************************************
+    This function unserializes data structure from string/stream.
     *************************************************************************/
     public static void mlpeunserialize(System.IO.Stream stream_in, out mlpensemble obj)
+    
     {
         alglib.serializer s = new alglib.serializer();
         obj = new mlpensemble();
@@ -3947,8 +4018,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -4029,8 +4100,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -4106,8 +4177,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -4538,7 +4609,7 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function serializes data structure to string.
+    This function serializes data structure to string/stream.
     
     Important properties of s_out:
     * it contains alphanumeric characters, dots, underscores, minus signs
@@ -4547,14 +4618,14 @@ public partial class alglib
     * although  serializer  uses  spaces and CR+LF as separators, you can 
       replace any separator character by arbitrary combination of spaces,
       tabs, Windows or Unix newlines. It allows flexible reformatting  of
-      the  string  in  case you want to include it into text or XML file. 
+      the  string in case you want to include it into a text or XML file. 
       But you should not insert separators into the middle of the "words"
-      nor you should change case of letters.
+      nor should you change the case of letters.
     * s_out can be freely moved between 32-bit and 64-bit systems, little
       and big endian machines, and so on. You can serialize structure  on
       32-bit machine and unserialize it on 64-bit one (or vice versa), or
       serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
-      serialize  it  in  C# version of ALGLIB and unserialize in C++ one, 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
       and vice versa.
     *************************************************************************/
     public static void dfserialize(decisionforest obj, out string s_out)
@@ -4570,28 +4641,24 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from string.
-    *************************************************************************/
-    public static void dfunserialize(string s_in, out decisionforest obj)
-    {
-        alglib.serializer s = new alglib.serializer();
-        obj = new decisionforest();
-        s.ustart_str(s_in);
-        dforest.dfunserialize(s, obj.innerobj, null);
-        s.stop();
-    }
-
-
-    /*************************************************************************
-    This function serializes data structure to stream.
+    This function serializes data structure to string/stream.
     
-    Data stream generated by this function is same as  string  representation
-    generated  by  string  version  of  serializer - alphanumeric characters,
-    dots, underscores, minus signs, which are grouped into words separated by
-    spaces and CR+LF.
-    
-    We recommend you to read comments on string version of serializer to find
-    out more about serialization of AlGLIB objects.
+    Important properties of s_out:
+    * it contains alphanumeric characters, dots, underscores, minus signs
+    * these symbols are grouped into words, which are separated by spaces
+      and Windows-style (CR+LF) newlines
+    * although  serializer  uses  spaces and CR+LF as separators, you can 
+      replace any separator character by arbitrary combination of spaces,
+      tabs, Windows or Unix newlines. It allows flexible reformatting  of
+      the  string in case you want to include it into a text or XML file. 
+      But you should not insert separators into the middle of the "words"
+      nor should you change the case of letters.
+    * s_out can be freely moved between 32-bit and 64-bit systems, little
+      and big endian machines, and so on. You can serialize structure  on
+      32-bit machine and unserialize it on 64-bit one (or vice versa), or
+      serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
+      and vice versa.
     *************************************************************************/
     public static void dfserialize(decisionforest obj, System.IO.Stream stream_out)
     {
@@ -4605,9 +4672,23 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from stream.
+    This function unserializes data structure from string/stream.
+    *************************************************************************/
+    public static void dfunserialize(string s_in, out decisionforest obj)
+    {
+        alglib.serializer s = new alglib.serializer();
+        obj = new decisionforest();
+        s.ustart_str(s_in);
+        dforest.dfunserialize(s, obj.innerobj, null);
+        s.stop();
+    }
+
+
+    /*************************************************************************
+    This function unserializes data structure from string/stream.
     *************************************************************************/
     public static void dfunserialize(System.IO.Stream stream_in, out decisionforest obj)
+    
     {
         alglib.serializer s = new alglib.serializer();
         obj = new decisionforest();
@@ -5858,37 +5939,58 @@ public partial class alglib
         XY          -   training set, array [0..NPoints-1,0..NVars]:
                         * NVars columns - independent variables
                         * last column - dependent variable
-        NPoints     -   training set size, NPoints>NVars+1
+        NPoints     -   training set size, NPoints>NVars+1. An exception is
+                        generated otherwise.
         NVars       -   number of independent variables
 
     OUTPUT PARAMETERS:
-        Info        -   return code:
-                        * -255, in case of unknown internal error
-                        * -4, if internal SVD subroutine haven't converged
-                        * -1, if incorrect parameters was passed (NPoints<NVars+2, NVars<1).
-                        *  1, if subroutine successfully finished
         LM          -   linear model in the ALGLIB format. Use subroutines of
                         this unit to work with the model.
-        AR          -   additional results
-
+        Rep         -   additional results, see comments on LRReport structure.
 
       -- ALGLIB --
          Copyright 02.08.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void lrbuild(double[,] xy, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar)
+    public static void lrbuild(double[,] xy, int npoints, int nvars, out linearmodel lm, out lrreport rep)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuild(xy, npoints, nvars, ref info, lm.innerobj, ar.innerobj, null);
+        rep = new lrreport();
+        linreg.lrbuild(xy, npoints, nvars, lm.innerobj, rep.innerobj, null);
     }
     
-    public static void lrbuild(double[,] xy, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar, alglib.xparams _params)
+    public static void lrbuild(double[,] xy, int npoints, int nvars, out linearmodel lm, out lrreport rep, alglib.xparams _params)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuild(xy, npoints, nvars, ref info, lm.innerobj, ar.innerobj, _params);
+        rep = new lrreport();
+        linreg.lrbuild(xy, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    }
+            
+    public static void lrbuild(double[,] xy, out linearmodel lm, out lrreport rep)
+    {
+        int npoints;
+        int nvars;
+    
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuild(xy, npoints, nvars, lm.innerobj, rep.innerobj, null);
+    
+        return;
+    }
+            
+    public static void lrbuild(double[,] xy, out linearmodel lm, out lrreport rep, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+    
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuild(xy, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -5902,39 +6004,60 @@ public partial class alglib
                         * NVars columns - independent variables
                         * last column - dependent variable
         S           -   standard deviations (errors in function values)
-                        array[0..NPoints-1], S[i]>0.
+                        array[NPoints], S[i]>0.
         NPoints     -   training set size, NPoints>NVars+1
         NVars       -   number of independent variables
 
     OUTPUT PARAMETERS:
-        Info        -   return code:
-                        * -255, in case of unknown internal error
-                        * -4, if internal SVD subroutine haven't converged
-                        * -1, if incorrect parameters was passed (NPoints<NVars+2, NVars<1).
-                        * -2, if S[I]<=0
-                        *  1, if subroutine successfully finished
         LM          -   linear model in the ALGLIB format. Use subroutines of
                         this unit to work with the model.
-        AR          -   additional results
-
+        Rep         -   additional results, see comments on LRReport structure.
 
       -- ALGLIB --
          Copyright 02.08.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void lrbuilds(double[,] xy, double[] s, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar)
+    public static void lrbuilds(double[,] xy, double[] s, int npoints, int nvars, out linearmodel lm, out lrreport rep)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuilds(xy, s, npoints, nvars, ref info, lm.innerobj, ar.innerobj, null);
+        rep = new lrreport();
+        linreg.lrbuilds(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, null);
     }
     
-    public static void lrbuilds(double[,] xy, double[] s, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar, alglib.xparams _params)
+    public static void lrbuilds(double[,] xy, double[] s, int npoints, int nvars, out linearmodel lm, out lrreport rep, alglib.xparams _params)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuilds(xy, s, npoints, nvars, ref info, lm.innerobj, ar.innerobj, _params);
+        rep = new lrreport();
+        linreg.lrbuilds(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    }
+            
+    public static void lrbuilds(double[,] xy, double[] s, out linearmodel lm, out lrreport rep)
+    {
+        int npoints;
+        int nvars;
+        if( (ap.rows(xy)!=ap.len(s)))
+            throw new alglibexception("Error while calling 'lrbuilds': looks like one of arguments has wrong size");
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuilds(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, null);
+    
+        return;
+    }
+            
+    public static void lrbuilds(double[,] xy, double[] s, out linearmodel lm, out lrreport rep, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+        if( (ap.rows(xy)!=ap.len(s)))
+            throw new alglibexception("Error while calling 'lrbuilds': looks like one of arguments has wrong size");
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuilds(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -5947,20 +6070,48 @@ public partial class alglib
       -- ALGLIB --
          Copyright 30.10.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void lrbuildzs(double[,] xy, double[] s, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar)
+    public static void lrbuildzs(double[,] xy, double[] s, int npoints, int nvars, out linearmodel lm, out lrreport rep)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuildzs(xy, s, npoints, nvars, ref info, lm.innerobj, ar.innerobj, null);
+        rep = new lrreport();
+        linreg.lrbuildzs(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, null);
     }
     
-    public static void lrbuildzs(double[,] xy, double[] s, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar, alglib.xparams _params)
+    public static void lrbuildzs(double[,] xy, double[] s, int npoints, int nvars, out linearmodel lm, out lrreport rep, alglib.xparams _params)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuildzs(xy, s, npoints, nvars, ref info, lm.innerobj, ar.innerobj, _params);
+        rep = new lrreport();
+        linreg.lrbuildzs(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    }
+            
+    public static void lrbuildzs(double[,] xy, double[] s, out linearmodel lm, out lrreport rep)
+    {
+        int npoints;
+        int nvars;
+        if( (ap.rows(xy)!=ap.len(s)))
+            throw new alglibexception("Error while calling 'lrbuildzs': looks like one of arguments has wrong size");
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuildzs(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, null);
+    
+        return;
+    }
+            
+    public static void lrbuildzs(double[,] xy, double[] s, out linearmodel lm, out lrreport rep, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+        if( (ap.rows(xy)!=ap.len(s)))
+            throw new alglibexception("Error while calling 'lrbuildzs': looks like one of arguments has wrong size");
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuildzs(xy, s, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -5973,20 +6124,46 @@ public partial class alglib
       -- ALGLIB --
          Copyright 30.10.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void lrbuildz(double[,] xy, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar)
+    public static void lrbuildz(double[,] xy, int npoints, int nvars, out linearmodel lm, out lrreport rep)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuildz(xy, npoints, nvars, ref info, lm.innerobj, ar.innerobj, null);
+        rep = new lrreport();
+        linreg.lrbuildz(xy, npoints, nvars, lm.innerobj, rep.innerobj, null);
     }
     
-    public static void lrbuildz(double[,] xy, int npoints, int nvars, out int info, out linearmodel lm, out lrreport ar, alglib.xparams _params)
+    public static void lrbuildz(double[,] xy, int npoints, int nvars, out linearmodel lm, out lrreport rep, alglib.xparams _params)
     {
-        info = 0;
         lm = new linearmodel();
-        ar = new lrreport();
-        linreg.lrbuildz(xy, npoints, nvars, ref info, lm.innerobj, ar.innerobj, _params);
+        rep = new lrreport();
+        linreg.lrbuildz(xy, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    }
+            
+    public static void lrbuildz(double[,] xy, out linearmodel lm, out lrreport rep)
+    {
+        int npoints;
+        int nvars;
+    
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuildz(xy, npoints, nvars, lm.innerobj, rep.innerobj, null);
+    
+        return;
+    }
+            
+    public static void lrbuildz(double[,] xy, out linearmodel lm, out lrreport rep, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+    
+        lm = new linearmodel();
+        rep = new lrreport();
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        linreg.lrbuildz(xy, npoints, nvars, lm.innerobj, rep.innerobj, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -6042,6 +6219,28 @@ public partial class alglib
     {
         lm = new linearmodel();
         linreg.lrpack(v, nvars, lm.innerobj, _params);
+    }
+            
+    public static void lrpack(double[] v, out linearmodel lm)
+    {
+        int nvars;
+    
+        lm = new linearmodel();
+        nvars = ap.len(v)+1;
+        linreg.lrpack(v, nvars, lm.innerobj, null);
+    
+        return;
+    }
+            
+    public static void lrpack(double[] v, out linearmodel lm, alglib.xparams _params)
+    {
+        int nvars;
+    
+        lm = new linearmodel();
+        nvars = ap.len(v)+1;
+        linreg.lrpack(v, nvars, lm.innerobj, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -6188,36 +6387,36 @@ public partial class alglib
       -- ALGLIB --
          Copyright 25.10.2011 by Bochkanov Sergey
     *************************************************************************/
-    public static void filtersma(ref double[] x, int n, int k)
+    public static void filtersma(double[] x, int n, int k)
     {
     
-        filters.filtersma(ref x, n, k, null);
+        filters.filtersma(x, n, k, null);
     }
     
-    public static void filtersma(ref double[] x, int n, int k, alglib.xparams _params)
+    public static void filtersma(double[] x, int n, int k, alglib.xparams _params)
     {
     
-        filters.filtersma(ref x, n, k, _params);
+        filters.filtersma(x, n, k, _params);
     }
             
-    public static void filtersma(ref double[] x, int k)
+    public static void filtersma(double[] x, int k)
     {
         int n;
     
     
         n = ap.len(x);
-        filters.filtersma(ref x, n, k, null);
+        filters.filtersma(x, n, k, null);
     
         return;
     }
             
-    public static void filtersma(ref double[] x, int k, alglib.xparams _params)
+    public static void filtersma(double[] x, int k, alglib.xparams _params)
     {
         int n;
     
     
         n = ap.len(x);
-        filters.filtersma(ref x, n, k, _params);
+        filters.filtersma(x, n, k, _params);
     
         return;
     }
@@ -6253,36 +6452,36 @@ public partial class alglib
       -- ALGLIB --
          Copyright 25.10.2011 by Bochkanov Sergey
     *************************************************************************/
-    public static void filterema(ref double[] x, int n, double alpha)
+    public static void filterema(double[] x, int n, double alpha)
     {
     
-        filters.filterema(ref x, n, alpha, null);
+        filters.filterema(x, n, alpha, null);
     }
     
-    public static void filterema(ref double[] x, int n, double alpha, alglib.xparams _params)
+    public static void filterema(double[] x, int n, double alpha, alglib.xparams _params)
     {
     
-        filters.filterema(ref x, n, alpha, _params);
+        filters.filterema(x, n, alpha, _params);
     }
             
-    public static void filterema(ref double[] x, double alpha)
+    public static void filterema(double[] x, double alpha)
     {
         int n;
     
     
         n = ap.len(x);
-        filters.filterema(ref x, n, alpha, null);
+        filters.filterema(x, n, alpha, null);
     
         return;
     }
             
-    public static void filterema(ref double[] x, double alpha, alglib.xparams _params)
+    public static void filterema(double[] x, double alpha, alglib.xparams _params)
     {
         int n;
     
     
         n = ap.len(x);
-        filters.filterema(ref x, n, alpha, _params);
+        filters.filterema(x, n, alpha, _params);
     
         return;
     }
@@ -6306,7 +6505,7 @@ public partial class alglib
                         identity transformation (nothing changes).
 
     OUTPUT PARAMETERS:
-        X           -   array, whose first N elements were processed with SMA(K)
+        X           -   array, whose first N elements were processed with LRMA(K)
 
     NOTE 1: this function uses efficient in-place  algorithm  which  does not
             allocate temporary arrays.
@@ -6326,36 +6525,36 @@ public partial class alglib
       -- ALGLIB --
          Copyright 25.10.2011 by Bochkanov Sergey
     *************************************************************************/
-    public static void filterlrma(ref double[] x, int n, int k)
+    public static void filterlrma(double[] x, int n, int k)
     {
     
-        filters.filterlrma(ref x, n, k, null);
+        filters.filterlrma(x, n, k, null);
     }
     
-    public static void filterlrma(ref double[] x, int n, int k, alglib.xparams _params)
+    public static void filterlrma(double[] x, int n, int k, alglib.xparams _params)
     {
     
-        filters.filterlrma(ref x, n, k, _params);
+        filters.filterlrma(x, n, k, _params);
     }
             
-    public static void filterlrma(ref double[] x, int k)
+    public static void filterlrma(double[] x, int k)
     {
         int n;
     
     
         n = ap.len(x);
-        filters.filterlrma(ref x, n, k, null);
+        filters.filterlrma(x, n, k, null);
     
         return;
     }
             
-    public static void filterlrma(ref double[] x, int k, alglib.xparams _params)
+    public static void filterlrma(double[] x, int k, alglib.xparams _params)
     {
         int n;
     
     
         n = ap.len(x);
-        filters.filterlrma(ref x, n, k, _params);
+        filters.filterlrma(x, n, k, _params);
     
         return;
     }
@@ -7851,31 +8050,25 @@ public partial class alglib
     /*************************************************************************
     Multiclass Fisher LDA
 
-    Subroutine finds coefficients of linear combination which optimally separates
-    training set on classes.
+    The function finds coefficients of a linear  combination  which  optimally
+    separates training set. Most suited for 2-class problems, see fisherldan()
+    for an variant that returns N-dimensional basis.
 
     INPUT PARAMETERS:
-        XY          -   training set, array[0..NPoints-1,0..NVars].
+        XY          -   training set, array[NPoints,NVars+1].
                         First NVars columns store values of independent
-                        variables, next column stores number of class (from 0
-                        to NClasses-1) which dataset element belongs to. Fractional
-                        values are rounded to nearest integer.
+                        variables, the next column stores class index (from 0
+                        to NClasses-1) which dataset element belongs to.
+                        Fractional values are rounded to the nearest integer.
+                        The class index must be in the [0,NClasses-1] range,
+                        an exception is generated otherwise.
         NPoints     -   training set size, NPoints>=0
         NVars       -   number of independent variables, NVars>=1
         NClasses    -   number of classes, NClasses>=2
 
 
     OUTPUT PARAMETERS:
-        Info        -   return code:
-                        * -4, if internal EVD subroutine hasn't converged
-                        * -2, if there is a point with class number
-                              outside of [0..NClasses-1].
-                        * -1, if incorrect parameters was passed (NPoints<0,
-                              NVars<1, NClasses<2)
-                        *  1, if task has been solved
-                        *  2, if there was a multicollinearity in training set,
-                              but task has been solved.
-        W           -   linear combination coefficients, array[0..NVars-1]
+        W           -   linear combination coefficients, array[NVars]
 
       ! FREE EDITION OF ALGLIB:
       !
@@ -7894,8 +8087,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -7904,18 +8097,42 @@ public partial class alglib
       -- ALGLIB --
          Copyright 31.05.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void fisherlda(double[,] xy, int npoints, int nvars, int nclasses, out int info, out double[] w)
+    public static void fisherlda(double[,] xy, int npoints, int nvars, int nclasses, out double[] w)
     {
-        info = 0;
         w = new double[0];
-        lda.fisherlda(xy, npoints, nvars, nclasses, ref info, ref w, null);
+        lda.fisherlda(xy, npoints, nvars, nclasses, ref w, null);
     }
     
-    public static void fisherlda(double[,] xy, int npoints, int nvars, int nclasses, out int info, out double[] w, alglib.xparams _params)
+    public static void fisherlda(double[,] xy, int npoints, int nvars, int nclasses, out double[] w, alglib.xparams _params)
     {
-        info = 0;
         w = new double[0];
-        lda.fisherlda(xy, npoints, nvars, nclasses, ref info, ref w, _params);
+        lda.fisherlda(xy, npoints, nvars, nclasses, ref w, _params);
+    }
+            
+    public static void fisherlda(double[,] xy, int nclasses, out double[] w)
+    {
+        int npoints;
+        int nvars;
+    
+        w = new double[0];
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        lda.fisherlda(xy, npoints, nvars, nclasses, ref w, null);
+    
+        return;
+    }
+            
+    public static void fisherlda(double[,] xy, int nclasses, out double[] w, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+    
+        w = new double[0];
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        lda.fisherlda(xy, npoints, nvars, nclasses, ref w, _params);
+    
+        return;
     }
     
     /*************************************************************************
@@ -7926,27 +8143,20 @@ public partial class alglib
     by quality of training set separation (in descending order).
 
     INPUT PARAMETERS:
-        XY          -   training set, array[0..NPoints-1,0..NVars].
+        XY          -   training set, array[NPoints,NVars+1].
                         First NVars columns store values of independent
-                        variables, next column stores number of class (from 0
-                        to NClasses-1) which dataset element belongs to. Fractional
-                        values are rounded to nearest integer.
+                        variables, the next column stores class index (from 0
+                        to NClasses-1) which dataset element belongs to.
+                        Fractional values are rounded to the nearest integer.
+                        The class index must be in the [0,NClasses-1] range,
+                        an exception is generated otherwise.
         NPoints     -   training set size, NPoints>=0
         NVars       -   number of independent variables, NVars>=1
         NClasses    -   number of classes, NClasses>=2
 
 
     OUTPUT PARAMETERS:
-        Info        -   return code:
-                        * -4, if internal EVD subroutine hasn't converged
-                        * -2, if there is a point with class number
-                              outside of [0..NClasses-1].
-                        * -1, if incorrect parameters was passed (NPoints<0,
-                              NVars<1, NClasses<2)
-                        *  1, if task has been solved
-                        *  2, if there was a multicollinearity in training set,
-                              but task has been solved.
-        W           -   basis, array[0..NVars-1,0..NVars-1]
+        W           -   basis, array[NVars,NVars]
                         columns of matrix stores basis vectors, sorted by
                         quality of training set separation (in descending order)
 
@@ -7967,8 +8177,8 @@ public partial class alglib
       ! of this function:
       ! * high-performance native backend with same C# interface (C# version)
       ! * multithreading support (C++ and C# versions)
-      ! * hardware vendor (Intel) implementations of linear algebra primitives
-      !   (C++ and C# versions, x86/x64 platform)
+      ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+      !   other primitives (C++ and C# versions)
       !
       ! We recommend you to read 'Working with commercial version' section  of
       ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -7977,18 +8187,42 @@ public partial class alglib
       -- ALGLIB --
          Copyright 31.05.2008 by Bochkanov Sergey
     *************************************************************************/
-    public static void fisherldan(double[,] xy, int npoints, int nvars, int nclasses, out int info, out double[,] w)
+    public static void fisherldan(double[,] xy, int npoints, int nvars, int nclasses, out double[,] w)
     {
-        info = 0;
         w = new double[0,0];
-        lda.fisherldan(xy, npoints, nvars, nclasses, ref info, ref w, null);
+        lda.fisherldan(xy, npoints, nvars, nclasses, ref w, null);
     }
     
-    public static void fisherldan(double[,] xy, int npoints, int nvars, int nclasses, out int info, out double[,] w, alglib.xparams _params)
+    public static void fisherldan(double[,] xy, int npoints, int nvars, int nclasses, out double[,] w, alglib.xparams _params)
     {
-        info = 0;
         w = new double[0,0];
-        lda.fisherldan(xy, npoints, nvars, nclasses, ref info, ref w, _params);
+        lda.fisherldan(xy, npoints, nvars, nclasses, ref w, _params);
+    }
+            
+    public static void fisherldan(double[,] xy, int nclasses, out double[,] w)
+    {
+        int npoints;
+        int nvars;
+    
+        w = new double[0,0];
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        lda.fisherldan(xy, npoints, nvars, nclasses, ref w, null);
+    
+        return;
+    }
+            
+    public static void fisherldan(double[,] xy, int nclasses, out double[,] w, alglib.xparams _params)
+    {
+        int npoints;
+        int nvars;
+    
+        w = new double[0,0];
+        npoints = ap.rows(xy);
+        nvars = ap.cols(xy)-1;
+        lda.fisherldan(xy, npoints, nvars, nclasses, ref w, _params);
+    
+        return;
     }
 
 }
@@ -9420,7 +9654,7 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function serializes data structure to string.
+    This function serializes data structure to string/stream.
     
     Important properties of s_out:
     * it contains alphanumeric characters, dots, underscores, minus signs
@@ -9429,14 +9663,14 @@ public partial class alglib
     * although  serializer  uses  spaces and CR+LF as separators, you can 
       replace any separator character by arbitrary combination of spaces,
       tabs, Windows or Unix newlines. It allows flexible reformatting  of
-      the  string  in  case you want to include it into text or XML file. 
+      the  string in case you want to include it into a text or XML file. 
       But you should not insert separators into the middle of the "words"
-      nor you should change case of letters.
+      nor should you change the case of letters.
     * s_out can be freely moved between 32-bit and 64-bit systems, little
       and big endian machines, and so on. You can serialize structure  on
       32-bit machine and unserialize it on 64-bit one (or vice versa), or
       serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
-      serialize  it  in  C# version of ALGLIB and unserialize in C++ one, 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
       and vice versa.
     *************************************************************************/
     public static void knnserialize(knnmodel obj, out string s_out)
@@ -9452,28 +9686,24 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from string.
-    *************************************************************************/
-    public static void knnunserialize(string s_in, out knnmodel obj)
-    {
-        alglib.serializer s = new alglib.serializer();
-        obj = new knnmodel();
-        s.ustart_str(s_in);
-        knn.knnunserialize(s, obj.innerobj, null);
-        s.stop();
-    }
-
-
-    /*************************************************************************
-    This function serializes data structure to stream.
+    This function serializes data structure to string/stream.
     
-    Data stream generated by this function is same as  string  representation
-    generated  by  string  version  of  serializer - alphanumeric characters,
-    dots, underscores, minus signs, which are grouped into words separated by
-    spaces and CR+LF.
-    
-    We recommend you to read comments on string version of serializer to find
-    out more about serialization of AlGLIB objects.
+    Important properties of s_out:
+    * it contains alphanumeric characters, dots, underscores, minus signs
+    * these symbols are grouped into words, which are separated by spaces
+      and Windows-style (CR+LF) newlines
+    * although  serializer  uses  spaces and CR+LF as separators, you can 
+      replace any separator character by arbitrary combination of spaces,
+      tabs, Windows or Unix newlines. It allows flexible reformatting  of
+      the  string in case you want to include it into a text or XML file. 
+      But you should not insert separators into the middle of the "words"
+      nor should you change the case of letters.
+    * s_out can be freely moved between 32-bit and 64-bit systems, little
+      and big endian machines, and so on. You can serialize structure  on
+      32-bit machine and unserialize it on 64-bit one (or vice versa), or
+      serialize  it  on  SPARC  and  unserialize  on  x86.  You  can also 
+      serialize it in C++ version of ALGLIB and unserialize it in C# one, 
+      and vice versa.
     *************************************************************************/
     public static void knnserialize(knnmodel obj, System.IO.Stream stream_out)
     {
@@ -9487,9 +9717,23 @@ public partial class alglib
 
 
     /*************************************************************************
-    This function unserializes data structure from stream.
+    This function unserializes data structure from string/stream.
+    *************************************************************************/
+    public static void knnunserialize(string s_in, out knnmodel obj)
+    {
+        alglib.serializer s = new alglib.serializer();
+        obj = new knnmodel();
+        s.ustart_str(s_in);
+        knn.knnunserialize(s, obj.innerobj, null);
+        s.stop();
+    }
+
+
+    /*************************************************************************
+    This function unserializes data structure from string/stream.
     *************************************************************************/
     public static void knnunserialize(System.IO.Stream stream_in, out knnmodel obj)
+    
     {
         alglib.serializer s = new alglib.serializer();
         obj = new knnmodel();
@@ -11287,20 +11531,15 @@ public partial class alglib
         It should be noted that, unlike LDA, PCA does not use class labels.
 
         INPUT PARAMETERS:
-            X           -   dataset, array[0..NPoints-1,0..NVars-1].
+            X           -   dataset, array[NPoints,NVars].
                             matrix contains ONLY INDEPENDENT VARIABLES.
             NPoints     -   dataset size, NPoints>=0
             NVars       -   number of independent variables, NVars>=1
 
         OUTPUT PARAMETERS:
-            Info        -   return code:
-                            * -4, if SVD subroutine haven't converged
-                            * -1, if wrong parameters has been passed (NPoints<0,
-                                  NVars<1)
-                            *  1, if task is solved
-            S2          -   array[0..NVars-1]. variance values corresponding
+            S2          -   array[NVars]. variance values corresponding
                             to basis vectors.
-            V           -   array[0..NVars-1,0..NVars-1]
+            V           -   array[NVars,NVars]
                             matrix, whose columns store basis vectors.
 
           ! FREE EDITION OF ALGLIB:
@@ -11320,8 +11559,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -11333,7 +11572,6 @@ public partial class alglib
         public static void pcabuildbasis(double[,] x,
             int npoints,
             int nvars,
-            ref int info,
             ref double[] s2,
             ref double[,] v,
             alglib.xparams _params)
@@ -11351,7 +11589,6 @@ public partial class alglib
             double kurtosis = 0;
             int i_ = 0;
 
-            info = 0;
             s2 = new double[0];
             v = new double[0,0];
 
@@ -11359,12 +11596,11 @@ public partial class alglib
             //
             // Check input data
             //
-            if( npoints<0 || nvars<1 )
-            {
-                info = -1;
-                return;
-            }
-            info = 1;
+            alglib.ap.assert(npoints>=0, "PCABuildBasis: NPoints<0");
+            alglib.ap.assert(nvars>=1, "PCABuildBasis: NVars<1");
+            alglib.ap.assert(alglib.ap.rows(x)>=npoints, "PCABuildBasis: rows(X)<NPoints");
+            alglib.ap.assert(alglib.ap.cols(x)>=nvars || npoints==0, "PCABuildBasis: cols(X)<NVars");
+            alglib.ap.assert(apserv.apservisfinitematrix(x, npoints, nvars, _params), "PCABuildBasis: X contains INF/NAN");
             
             //
             // Special case: NPoints=0
@@ -11433,7 +11669,7 @@ public partial class alglib
             }
             if( !svd.rmatrixsvd(a, Math.Max(npoints, nvars), nvars, 0, 1, 2, ref s2, ref u, ref vt, _params) )
             {
-                info = -4;
+                alglib.ap.assert(false, "PCABuildBasis: internal SVD solver failure");
                 return;
             }
             if( npoints!=1 )
@@ -11507,8 +11743,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -11549,6 +11785,7 @@ public partial class alglib
             alglib.ap.assert(math.isfinite(eps) && (double)(eps)>=(double)(0), "PCATruncatedSubspace: eps<0 or is not finite");
             alglib.ap.assert(alglib.ap.rows(x)>=npoints, "PCATruncatedSubspace: rows(x)<npoints");
             alglib.ap.assert(alglib.ap.cols(x)>=nvars || npoints==0, "PCATruncatedSubspace: cols(x)<nvars");
+            alglib.ap.assert(apserv.apservisfinitematrix(x, npoints, nvars, _params), "PCATruncatedSubspace: X contains INF/NAN");
             
             //
             // Special case: NPoints=0
@@ -11698,8 +11935,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -13517,14 +13754,14 @@ public partial class alglib
                 _result.xyrow = (double[])xyrow.Clone();
                 _result.nwbuf = (double[])nwbuf.Clone();
                 _result.integerbuf = (int[])integerbuf.Clone();
-                _result.err = (modelerrors)err.make_copy();
+                _result.err = err!=null ? (modelerrors)err.make_copy() : null;
                 _result.rndbuf = (double[])rndbuf.Clone();
-                _result.buf = (alglib.smp.shared_pool)buf.make_copy();
-                _result.gradbuf = (alglib.smp.shared_pool)gradbuf.make_copy();
+                _result.buf = buf!=null ? (alglib.smp.shared_pool)buf.make_copy() : null;
+                _result.gradbuf = gradbuf!=null ? (alglib.smp.shared_pool)gradbuf.make_copy() : null;
                 _result.dummydxy = (double[,])dummydxy.Clone();
-                _result.dummysxy = (sparse.sparsematrix)dummysxy.make_copy();
+                _result.dummysxy = dummysxy!=null ? (sparse.sparsematrix)dummysxy.make_copy() : null;
                 _result.dummyidx = (int[])dummyidx.Clone();
-                _result.dummypool = (alglib.smp.shared_pool)dummypool.make_copy();
+                _result.dummypool = dummypool!=null ? (alglib.smp.shared_pool)dummypool.make_copy() : null;
                 return _result;
             }
         };
@@ -15875,45 +16112,10 @@ public partial class alglib
             ref double threshold,
             alglib.xparams _params)
         {
-            int ncnt = 0;
-            int istart = 0;
-            int highlevelidx = 0;
-            int activationoffset = 0;
-
             fkind = 0;
             threshold = 0;
 
-            ncnt = alglib.ap.len(network.hlneurons)/hlnfieldwidth;
-            istart = network.structinfo[5];
-            
-            //
-            // search
-            //
-            network.integerbuf[0] = k;
-            network.integerbuf[1] = i;
-            highlevelidx = apserv.recsearch(ref network.hlneurons, hlnfieldwidth, 2, 0, ncnt, network.integerbuf, _params);
-            alglib.ap.assert(highlevelidx>=0, "MLPGetNeuronInfo: incorrect (nonexistent) layer or neuron index");
-            
-            //
-            // 1. find offset of the activation function record in the
-            //
-            if( network.hlneurons[highlevelidx*hlnfieldwidth+2]>=0 )
-            {
-                activationoffset = istart+network.hlneurons[highlevelidx*hlnfieldwidth+2]*nfieldwidth;
-                fkind = network.structinfo[activationoffset+0];
-            }
-            else
-            {
-                fkind = 0;
-            }
-            if( network.hlneurons[highlevelidx*hlnfieldwidth+3]>=0 )
-            {
-                threshold = network.weights[network.hlneurons[highlevelidx*hlnfieldwidth+3]];
-            }
-            else
-            {
-                threshold = 0;
-            }
+            mlpgetneuroninfox(network, k, i, ref network.integerbuf, ref fkind, ref threshold, _params);
         }
 
 
@@ -15946,35 +16148,8 @@ public partial class alglib
             alglib.xparams _params)
         {
             double result = 0;
-            int ccnt = 0;
-            int highlevelidx = 0;
 
-            ccnt = alglib.ap.len(network.hlconnections)/hlconnfieldwidth;
-            
-            //
-            // check params
-            //
-            alglib.ap.assert(k0>=0 && k0<alglib.ap.len(network.hllayersizes), "MLPGetWeight: incorrect (nonexistent) K0");
-            alglib.ap.assert(i0>=0 && i0<network.hllayersizes[k0], "MLPGetWeight: incorrect (nonexistent) I0");
-            alglib.ap.assert(k1>=0 && k1<alglib.ap.len(network.hllayersizes), "MLPGetWeight: incorrect (nonexistent) K1");
-            alglib.ap.assert(i1>=0 && i1<network.hllayersizes[k1], "MLPGetWeight: incorrect (nonexistent) I1");
-            
-            //
-            // search
-            //
-            network.integerbuf[0] = k0;
-            network.integerbuf[1] = i0;
-            network.integerbuf[2] = k1;
-            network.integerbuf[3] = i1;
-            highlevelidx = apserv.recsearch(ref network.hlconnections, hlconnfieldwidth, 4, 0, ccnt, network.integerbuf, _params);
-            if( highlevelidx>=0 )
-            {
-                result = network.weights[network.hlconnections[highlevelidx*hlconnfieldwidth+4]];
-            }
-            else
-            {
-                result = 0;
-            }
+            result = mlpgetweightx(network, k0, i0, k1, i1, ref network.integerbuf, _params);
             return result;
         }
 
@@ -16112,7 +16287,7 @@ public partial class alglib
             //
             network.integerbuf[0] = k;
             network.integerbuf[1] = i;
-            highlevelidx = apserv.recsearch(ref network.hlneurons, hlnfieldwidth, 2, 0, ncnt, network.integerbuf, _params);
+            highlevelidx = apserv.recsearch(network.hlneurons, hlnfieldwidth, 2, 0, ncnt, network.integerbuf, _params);
             alglib.ap.assert(highlevelidx>=0, "MLPSetNeuronInfo: incorrect (nonexistent) layer or neuron index");
             
             //
@@ -16192,7 +16367,7 @@ public partial class alglib
             network.integerbuf[1] = i0;
             network.integerbuf[2] = k1;
             network.integerbuf[3] = i1;
-            highlevelidx = apserv.recsearch(ref network.hlconnections, hlconnfieldwidth, 4, 0, ccnt, network.integerbuf, _params);
+            highlevelidx = apserv.recsearch(network.hlconnections, hlconnfieldwidth, 4, 0, ccnt, network.integerbuf, _params);
             if( highlevelidx>=0 )
             {
                 network.weights[network.hlconnections[highlevelidx*hlconnfieldwidth+4]] = w;
@@ -18417,6 +18592,7 @@ public partial class alglib
             double v1 = 0;
             int nin = 0;
             int nout = 0;
+            int[] integerbuf = new int[0];
 
             nin = network.hllayersizes[0];
             nout = network.hllayersizes[alglib.ap.len(network.hllayersizes)-1];
@@ -18428,7 +18604,7 @@ public partial class alglib
             {
                 for(j=0; j<=network.hllayersizes[i]-1; j++)
                 {
-                    mlpgetneuroninfo(network, i, j, ref fkind, ref threshold, _params);
+                    mlpgetneuroninfox(network, i, j, ref integerbuf, ref fkind, ref threshold, _params);
                     s.alloc_entry();
                     s.alloc_entry();
                     for(k=0; k<=network.hllayersizes[i-1]-1; k++)
@@ -18471,6 +18647,7 @@ public partial class alglib
             double v1 = 0;
             int nin = 0;
             int nout = 0;
+            int[] integerbuf = new int[0];
 
             nin = network.hllayersizes[0];
             nout = network.hllayersizes[alglib.ap.len(network.hllayersizes)-1];
@@ -18482,12 +18659,12 @@ public partial class alglib
             {
                 for(j=0; j<=network.hllayersizes[i]-1; j++)
                 {
-                    mlpgetneuroninfo(network, i, j, ref fkind, ref threshold, _params);
+                    mlpgetneuroninfox(network, i, j, ref integerbuf, ref fkind, ref threshold, _params);
                     s.serialize_int(fkind);
                     s.serialize_double(threshold);
                     for(k=0; k<=network.hllayersizes[i-1]-1; k++)
                     {
-                        s.serialize_double(mlpgetweight(network, i-1, k, i, j, _params));
+                        s.serialize_double(mlpgetweightx(network, i-1, k, i, j, ref integerbuf, _params));
                     }
                 }
             }
@@ -19818,6 +19995,127 @@ public partial class alglib
                 sgrad.g[i] = 0.0;
             }
             alglib.smp.ae_shared_pool_set_seed(network.gradbuf, sgrad);
+        }
+
+
+        /*************************************************************************
+        This function returns information about Ith neuron of Kth layer.
+
+          -- ALGLIB --
+             Copyright 25.03.2011 by Bochkanov Sergey
+        *************************************************************************/
+        private static void mlpgetneuroninfox(multilayerperceptron network,
+            int k,
+            int i,
+            ref int[] integerbuf,
+            ref int fkind,
+            ref double threshold,
+            alglib.xparams _params)
+        {
+            int ncnt = 0;
+            int istart = 0;
+            int highlevelidx = 0;
+            int activationoffset = 0;
+
+            fkind = 0;
+            threshold = 0;
+
+            ablasf.iallocv(2, ref integerbuf, _params);
+            ncnt = alglib.ap.len(network.hlneurons)/hlnfieldwidth;
+            istart = network.structinfo[5];
+            
+            //
+            // search
+            //
+            integerbuf[0] = k;
+            integerbuf[1] = i;
+            highlevelidx = apserv.recsearch(network.hlneurons, hlnfieldwidth, 2, 0, ncnt, integerbuf, _params);
+            alglib.ap.assert(highlevelidx>=0, "MLPGetNeuronInfo: incorrect (nonexistent) layer or neuron index");
+            
+            //
+            // 1. find offset of the activation function record in the
+            //
+            if( network.hlneurons[highlevelidx*hlnfieldwidth+2]>=0 )
+            {
+                activationoffset = istart+network.hlneurons[highlevelidx*hlnfieldwidth+2]*nfieldwidth;
+                fkind = network.structinfo[activationoffset+0];
+            }
+            else
+            {
+                fkind = 0;
+            }
+            if( network.hlneurons[highlevelidx*hlnfieldwidth+3]>=0 )
+            {
+                threshold = network.weights[network.hlneurons[highlevelidx*hlnfieldwidth+3]];
+            }
+            else
+            {
+                threshold = 0;
+            }
+        }
+
+
+        /*************************************************************************
+        This function returns information about connection from I0-th neuron of
+        K0-th layer to I1-th neuron of K1-th layer.
+
+        INPUT PARAMETERS:
+            Network     -   network
+            K0          -   layer index
+            I0          -   neuron index (within layer)
+            K1          -   layer index
+            I1          -   neuron index (within layer)
+
+        RESULT:
+            connection weight (zero for non-existent connections)
+
+        This function:
+        1. throws exception if layer or neuron with given index do not exists.
+        2. returns zero if neurons exist, but there is no connection between them
+
+          -- ALGLIB --
+             Copyright 25.03.2011 by Bochkanov Sergey
+        *************************************************************************/
+        private static double mlpgetweightx(multilayerperceptron network,
+            int k0,
+            int i0,
+            int k1,
+            int i1,
+            ref int[] integerbuf,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            int ccnt = 0;
+            int highlevelidx = 0;
+
+            ablasf.iallocv(4, ref integerbuf, _params);
+            ccnt = alglib.ap.len(network.hlconnections)/hlconnfieldwidth;
+            
+            //
+            // check params
+            //
+            alglib.ap.assert(k0>=0 && k0<alglib.ap.len(network.hllayersizes), "MLPGetWeight: incorrect (nonexistent) K0");
+            alglib.ap.assert(i0>=0 && i0<network.hllayersizes[k0], "MLPGetWeight: incorrect (nonexistent) I0");
+            alglib.ap.assert(k1>=0 && k1<alglib.ap.len(network.hllayersizes), "MLPGetWeight: incorrect (nonexistent) K1");
+            alglib.ap.assert(i1>=0 && i1<network.hllayersizes[k1], "MLPGetWeight: incorrect (nonexistent) I1");
+            
+            //
+            // search
+            //
+            integerbuf[0] = k0;
+            integerbuf[1] = i0;
+            integerbuf[2] = k1;
+            integerbuf[3] = i1;
+            highlevelidx = apserv.recsearch(network.hlconnections, hlconnfieldwidth, 4, 0, ccnt, integerbuf, _params);
+            if( highlevelidx>=0 )
+            {
+                result = network.weights[network.hlconnections[highlevelidx*hlconnfieldwidth+4]];
+            }
+            else
+            {
+                result = 0;
+            }
+            return result;
         }
 
 
@@ -21564,7 +21862,7 @@ public partial class alglib
                 _result.weights = (double[])weights.Clone();
                 _result.columnmeans = (double[])columnmeans.Clone();
                 _result.columnsigmas = (double[])columnsigmas.Clone();
-                _result.network = (mlpbase.multilayerperceptron)network.make_copy();
+                _result.network = network!=null ? (mlpbase.multilayerperceptron)network.make_copy() : null;
                 _result.y = (double[])y.Clone();
                 return _result;
             }
@@ -22575,8 +22873,8 @@ public partial class alglib
                 _result.xycprev = (int[])xycprev.Clone();
                 _result.d2 = (double[])d2.Clone();
                 _result.csizes = (int[])csizes.Clone();
-                _result.initbuf = (apserv.apbuffers)initbuf.make_copy();
-                _result.updatepool = (alglib.smp.shared_pool)updatepool.make_copy();
+                _result.initbuf = initbuf!=null ? (apserv.apbuffers)initbuf.make_copy() : null;
+                _result.updatepool = updatepool!=null ? (alglib.smp.shared_pool)updatepool.make_copy() : null;
                 return _result;
             }
         };
@@ -22634,8 +22932,8 @@ public partial class alglib
                 _result.kmeansdbgnoits = kmeansdbgnoits;
                 _result.seed = seed;
                 _result.tmpd = (double[,])tmpd.Clone();
-                _result.distbuf = (apserv.apbuffers)distbuf.make_copy();
-                _result.kmeanstmp = (kmeansbuffers)kmeanstmp.make_copy();
+                _result.distbuf = distbuf!=null ? (apserv.apbuffers)distbuf.make_copy() : null;
+                _result.kmeanstmp = kmeanstmp!=null ? (kmeansbuffers)kmeanstmp.make_copy() : null;
                 return _result;
             }
         };
@@ -23199,8 +23497,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -23343,8 +23641,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -23469,8 +23767,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -25866,10 +26164,10 @@ public partial class alglib
                 _result.dsctotals = (int[])dsctotals.Clone();
                 _result.rdfprogress = rdfprogress;
                 _result.rdftotal = rdftotal;
-                _result.workpool = (alglib.smp.shared_pool)workpool.make_copy();
-                _result.votepool = (alglib.smp.shared_pool)votepool.make_copy();
-                _result.treepool = (alglib.smp.shared_pool)treepool.make_copy();
-                _result.treefactory = (alglib.smp.shared_pool)treefactory.make_copy();
+                _result.workpool = workpool!=null ? (alglib.smp.shared_pool)workpool.make_copy() : null;
+                _result.votepool = votepool!=null ? (alglib.smp.shared_pool)votepool.make_copy() : null;
+                _result.treepool = treepool!=null ? (alglib.smp.shared_pool)treepool.make_copy() : null;
+                _result.treefactory = treefactory!=null ? (alglib.smp.shared_pool)treefactory.make_copy() : null;
                 _result.neediobmatrix = neediobmatrix;
                 _result.iobmatrix = (bool[,])iobmatrix.Clone();
                 _result.varimpshuffle2 = (int[])varimpshuffle2.Clone();
@@ -26133,7 +26431,7 @@ public partial class alglib
                 _result.ntrees = ntrees;
                 _result.bufsize = bufsize;
                 _result.trees = (double[])trees.Clone();
-                _result.buffer = (decisionforestbuffer)buffer.make_copy();
+                _result.buffer = buffer!=null ? (decisionforestbuffer)buffer.make_copy() : null;
                 _result.trees8 = (byte[])trees8.Clone();
                 return _result;
             }
@@ -31476,19 +31774,14 @@ public partial class alglib
             XY          -   training set, array [0..NPoints-1,0..NVars]:
                             * NVars columns - independent variables
                             * last column - dependent variable
-            NPoints     -   training set size, NPoints>NVars+1
+            NPoints     -   training set size, NPoints>NVars+1. An exception is
+                            generated otherwise.
             NVars       -   number of independent variables
 
         OUTPUT PARAMETERS:
-            Info        -   return code:
-                            * -255, in case of unknown internal error
-                            * -4, if internal SVD subroutine haven't converged
-                            * -1, if incorrect parameters was passed (NPoints<NVars+2, NVars<1).
-                            *  1, if subroutine successfully finished
             LM          -   linear model in the ALGLIB format. Use subroutines of
                             this unit to work with the model.
-            AR          -   additional results
-
+            Rep         -   additional results, see comments on LRReport structure.
 
           -- ALGLIB --
              Copyright 02.08.2008 by Bochkanov Sergey
@@ -31496,9 +31789,8 @@ public partial class alglib
         public static void lrbuild(double[,] xy,
             int npoints,
             int nvars,
-            ref int info,
             linearmodel lm,
-            lrreport ar,
+            lrreport rep,
             alglib.xparams _params)
         {
             double[] s = new double[0];
@@ -31506,29 +31798,19 @@ public partial class alglib
             double sigma2 = 0;
             int i_ = 0;
 
-            info = 0;
-
-            if( npoints<=nvars+1 || nvars<1 )
-            {
-                info = -1;
-                return;
-            }
-            s = new double[npoints-1+1];
-            for(i=0; i<=npoints-1; i++)
-            {
-                s[i] = 1;
-            }
-            lrbuilds(xy, s, npoints, nvars, ref info, lm, ar, _params);
-            if( info<0 )
-            {
-                return;
-            }
-            sigma2 = math.sqr(ar.rmserror)*npoints/(npoints-nvars-1);
+            alglib.ap.assert(nvars>=1, "LRBuild: NVars<1");
+            alglib.ap.assert(npoints>nvars+1, "LRBuild: NPoints is less than NVars+1");
+            alglib.ap.assert(alglib.ap.rows(xy)>=npoints, "LRBuild: rows(XY)<NPoints");
+            alglib.ap.assert(alglib.ap.cols(xy)>=nvars+1, "LRBuild: cols(XY)<NVars+1");
+            alglib.ap.assert(apserv.apservisfinitematrix(xy, npoints, nvars+1, _params), "LRBuild: XY contains INF/NAN");
+            ablasf.rsetallocv(npoints, 1.0, ref s, _params);
+            lrbuilds(xy, s, npoints, nvars, lm, rep, _params);
+            sigma2 = math.sqr(rep.rmserror)*npoints/(npoints-nvars-1);
             for(i=0; i<=nvars; i++)
             {
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[i,i_] = sigma2*ar.c[i,i_];
+                    rep.c[i,i_] = sigma2*rep.c[i,i_];
                 }
             }
         }
@@ -31545,21 +31827,14 @@ public partial class alglib
                             * NVars columns - independent variables
                             * last column - dependent variable
             S           -   standard deviations (errors in function values)
-                            array[0..NPoints-1], S[i]>0.
+                            array[NPoints], S[i]>0.
             NPoints     -   training set size, NPoints>NVars+1
             NVars       -   number of independent variables
 
         OUTPUT PARAMETERS:
-            Info        -   return code:
-                            * -255, in case of unknown internal error
-                            * -4, if internal SVD subroutine haven't converged
-                            * -1, if incorrect parameters was passed (NPoints<NVars+2, NVars<1).
-                            * -2, if S[I]<=0
-                            *  1, if subroutine successfully finished
             LM          -   linear model in the ALGLIB format. Use subroutines of
                             this unit to work with the model.
-            AR          -   additional results
-
+            Rep         -   additional results, see comments on LRReport structure.
 
           -- ALGLIB --
              Copyright 02.08.2008 by Bochkanov Sergey
@@ -31568,9 +31843,8 @@ public partial class alglib
             double[] s,
             int npoints,
             int nvars,
-            ref int info,
             linearmodel lm,
-            lrreport ar,
+            lrreport rep,
             alglib.xparams _params)
         {
             double[,] xyi = new double[0,0];
@@ -31587,16 +31861,16 @@ public partial class alglib
             double kurtosis = 0;
             int i_ = 0;
 
-            info = 0;
-
-            
-            //
-            // Test parameters
-            //
-            if( npoints<=nvars+1 || nvars<1 )
+            alglib.ap.assert(nvars>=1, "LRBuildS: NVars<1");
+            alglib.ap.assert(npoints>nvars+1, "LRBuildS: NPoints is less than NVars+1");
+            alglib.ap.assert(alglib.ap.rows(xy)>=npoints, "LRBuildS: rows(XY)<NPoints");
+            alglib.ap.assert(alglib.ap.cols(xy)>=nvars+1, "LRBuildS: cols(XY)<NVars+1");
+            alglib.ap.assert(alglib.ap.len(s)>=npoints, "LRBuildS: length(S)<NPoints");
+            alglib.ap.assert(apserv.apservisfinitematrix(xy, npoints, nvars+1, _params), "LRBuildS: XY contains INF/NAN");
+            alglib.ap.assert(apserv.isfinitevector(s, npoints, _params), "LRBuildS: S contains INF/NAN");
+            for(i=0; i<=npoints-1; i++)
             {
-                info = -1;
-                return;
+                alglib.ap.assert((double)(s[i])>(double)(0), "LRBuildS: S[I]<=0");
             }
             
             //
@@ -31641,11 +31915,7 @@ public partial class alglib
             //
             // Internal processing
             //
-            lrinternal(xyi, s, npoints, nvars+1, ref info, lm, ar, _params);
-            if( info<0 )
-            {
-                return;
-            }
+            lrinternal(xyi, s, npoints, nvars+1, lm, rep, _params);
             
             //
             // Un-standartization
@@ -31662,11 +31932,11 @@ public partial class alglib
                 v = means[j]/sigmas[j];
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[nvars,i_] = ar.c[nvars,i_] - v*ar.c[j,i_];
+                    rep.c[nvars,i_] = rep.c[nvars,i_] - v*rep.c[j,i_];
                 }
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[i_,nvars] = ar.c[i_,nvars] - v*ar.c[i_,j];
+                    rep.c[i_,nvars] = rep.c[i_,nvars] - v*rep.c[i_,j];
                 }
                 
                 //
@@ -31676,11 +31946,11 @@ public partial class alglib
                 v = 1/sigmas[j];
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[j,i_] = v*ar.c[j,i_];
+                    rep.c[j,i_] = v*rep.c[j,i_];
                 }
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[i_,j] = v*ar.c[i_,j];
+                    rep.c[i_,j] = v*rep.c[i_,j];
                 }
             }
         }
@@ -31700,9 +31970,8 @@ public partial class alglib
             double[] s,
             int npoints,
             int nvars,
-            ref int info,
             linearmodel lm,
-            lrreport ar,
+            lrreport rep,
             alglib.xparams _params)
         {
             double[,] xyi = new double[0,0];
@@ -31718,16 +31987,16 @@ public partial class alglib
             double kurtosis = 0;
             int i_ = 0;
 
-            info = 0;
-
-            
-            //
-            // Test parameters
-            //
-            if( npoints<=nvars+1 || nvars<1 )
+            alglib.ap.assert(nvars>=1, "LRBuildZS: NVars<1");
+            alglib.ap.assert(npoints>nvars+1, "LRBuildZS: NPoints is less than NVars+1");
+            alglib.ap.assert(alglib.ap.rows(xy)>=npoints, "LRBuildZS: rows(XY)<NPoints");
+            alglib.ap.assert(alglib.ap.cols(xy)>=nvars+1, "LRBuildZS: cols(XY)<NVars+1");
+            alglib.ap.assert(alglib.ap.len(s)>=npoints, "LRBuildZS: length(S)<NPoints");
+            alglib.ap.assert(apserv.apservisfinitematrix(xy, npoints, nvars+1, _params), "LRBuildZS: XY contains INF/NAN");
+            alglib.ap.assert(apserv.isfinitevector(s, npoints, _params), "LRBuildZS: S contains INF/NAN");
+            for(i=0; i<=npoints-1; i++)
             {
-                info = -1;
-                return;
+                alglib.ap.assert((double)(s[i])>(double)(0), "LRBuildZS: S[I]<=0");
             }
             
             //
@@ -31786,11 +32055,7 @@ public partial class alglib
             //
             // Internal processing
             //
-            lrinternal(xyi, s, npoints, nvars+1, ref info, lm, ar, _params);
-            if( info<0 )
-            {
-                return;
-            }
+            lrinternal(xyi, s, npoints, nvars+1, lm, rep, _params);
             
             //
             // Un-standartization
@@ -31806,11 +32071,11 @@ public partial class alglib
                 v = 1/c[j];
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[j,i_] = v*ar.c[j,i_];
+                    rep.c[j,i_] = v*rep.c[j,i_];
                 }
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[i_,j] = v*ar.c[i_,j];
+                    rep.c[i_,j] = v*rep.c[i_,j];
                 }
             }
         }
@@ -31829,9 +32094,8 @@ public partial class alglib
         public static void lrbuildz(double[,] xy,
             int npoints,
             int nvars,
-            ref int info,
             linearmodel lm,
-            lrreport ar,
+            lrreport rep,
             alglib.xparams _params)
         {
             double[] s = new double[0];
@@ -31839,29 +32103,23 @@ public partial class alglib
             double sigma2 = 0;
             int i_ = 0;
 
-            info = 0;
-
-            if( npoints<=nvars+1 || nvars<1 )
-            {
-                info = -1;
-                return;
-            }
+            alglib.ap.assert(nvars>=1, "LRBuildZ: NVars<1");
+            alglib.ap.assert(npoints>nvars+1, "LRBuildZ: NPoints is less than NVars+1");
+            alglib.ap.assert(alglib.ap.rows(xy)>=npoints, "LRBuildZ: rows(XY)<NPoints");
+            alglib.ap.assert(alglib.ap.cols(xy)>=nvars+1, "LRBuildZ: cols(XY)<NVars+1");
+            alglib.ap.assert(apserv.apservisfinitematrix(xy, npoints, nvars+1, _params), "LRBuildZ: XY contains INF/NAN");
             s = new double[npoints-1+1];
             for(i=0; i<=npoints-1; i++)
             {
                 s[i] = 1;
             }
-            lrbuildzs(xy, s, npoints, nvars, ref info, lm, ar, _params);
-            if( info<0 )
-            {
-                return;
-            }
-            sigma2 = math.sqr(ar.rmserror)*npoints/(npoints-nvars-1);
+            lrbuildzs(xy, s, npoints, nvars, lm, rep, _params);
+            sigma2 = math.sqr(rep.rmserror)*npoints/(npoints-nvars-1);
             for(i=0; i<=nvars; i++)
             {
                 for(i_=0; i_<=nvars;i_++)
                 {
-                    ar.c[i,i_] = sigma2*ar.c[i,i_];
+                    rep.c[i,i_] = sigma2*rep.c[i,i_];
                 }
             }
         }
@@ -31929,6 +32187,8 @@ public partial class alglib
             int i_ = 0;
             int i1_ = 0;
 
+            alglib.ap.assert(alglib.ap.len(v)>=nvars+1, "LRPack: length(V)<NVars+1");
+            alglib.ap.assert(apserv.isfinitevector(v, nvars+1, _params), "LRPack: V contains INF/NAN");
             lm.w = new double[4+nvars+1];
             offs = 4;
             lm.w[0] = 4+nvars+1;
@@ -32162,7 +32422,6 @@ public partial class alglib
         public static void lrlines(double[,] xy,
             double[] s,
             int n,
-            ref int info,
             ref double a,
             ref double b,
             ref double vara,
@@ -32183,7 +32442,6 @@ public partial class alglib
             double t = 0;
             double chi2 = 0;
 
-            info = 0;
             a = 0;
             b = 0;
             vara = 0;
@@ -32194,18 +32452,17 @@ public partial class alglib
 
             if( n<2 )
             {
-                info = -1;
+                alglib.ap.assert(false, "LINREG: 7129");
                 return;
             }
             for(i=0; i<=n-1; i++)
             {
                 if( (double)(s[i])<=(double)(0) )
                 {
-                    info = -2;
+                    alglib.ap.assert(false, "LINREG: 7729");
                     return;
                 }
             }
-            info = 1;
             
             //
             // Calculate S, SX, SY, SXX
@@ -32231,7 +32488,7 @@ public partial class alglib
             e2 = 0.5*(ss+sxx-t);
             if( (double)(Math.Min(e1, e2))<=(double)(1000*math.machineepsilon*Math.Max(e1, e2)) )
             {
-                info = -3;
+                alglib.ap.assert(false, "LINREG: 4929");
                 return;
             }
             
@@ -32279,7 +32536,6 @@ public partial class alglib
 
         public static void lrline(double[,] xy,
             int n,
-            ref int info,
             ref double a,
             ref double b,
             alglib.xparams _params)
@@ -32292,13 +32548,12 @@ public partial class alglib
             double corrab = 0;
             double p = 0;
 
-            info = 0;
             a = 0;
             b = 0;
 
             if( n<2 )
             {
-                info = -1;
+                alglib.ap.assert(false, "LINREG: 3329");
                 return;
             }
             s = new double[n-1+1];
@@ -32306,7 +32561,7 @@ public partial class alglib
             {
                 s[i] = 1;
             }
-            lrlines(xy, s, n, ref info, ref a, ref b, ref vara, ref varb, ref covab, ref corrab, ref p, _params);
+            lrlines(xy, s, n, ref a, ref b, ref vara, ref varb, ref covab, ref corrab, ref p, _params);
         }
 
 
@@ -32317,7 +32572,6 @@ public partial class alglib
             double[] s,
             int npoints,
             int nvars,
-            ref int info,
             linearmodel lm,
             lrreport ar,
             alglib.xparams _params)
@@ -32347,27 +32601,16 @@ public partial class alglib
             int i_ = 0;
             int i1_ = 0;
 
-            info = 0;
-
             epstol = 1000;
             
             //
             // Check for errors in data
             //
-            if( npoints<nvars || nvars<1 )
-            {
-                info = -1;
-                return;
-            }
+            alglib.ap.assert(!(npoints<nvars || nvars<1), "LINREG: integrity check 3057 failed");
             for(i=0; i<=npoints-1; i++)
             {
-                if( (double)(s[i])<=(double)(0) )
-                {
-                    info = -2;
-                    return;
-                }
+                alglib.ap.assert((double)(s[i])>(double)(0), "LINREG: integrity check 3057 failed");
             }
-            info = 1;
             
             //
             // Create design matrix
@@ -32415,8 +32658,7 @@ public partial class alglib
             vm = new double[nvars-1+1, nvars-1+1];
             if( !svd.rmatrixsvd(a, npoints, nvars, 1, 1, 2, ref sv, ref u, ref vt, _params) )
             {
-                info = -4;
-                return;
+                alglib.ap.assert(false, "LINREG: SVD solver failed");
             }
             if( (double)(sv[0])<=(double)(0) )
             {
@@ -32487,11 +32729,7 @@ public partial class alglib
                         //
                         // Solve
                         //
-                        lrinternal(xym, s, npoints, k, ref info, tlm, ar2, _params);
-                        if( info!=1 )
-                        {
-                            return;
-                        }
+                        lrinternal(xym, s, npoints, k, tlm, ar2, _params);
                         
                         //
                         // Convert back to un-reduced format
@@ -32532,8 +32770,7 @@ public partial class alglib
                         return;
                     }
                 }
-                info = -255;
-                return;
+                alglib.ap.assert(false, "LINREG: integrity check 7801 failed");
             }
             for(i=0; i<=nvars-1; i++)
             {
@@ -32697,8 +32934,7 @@ public partial class alglib
                 // Something strange: ALL ui are degenerate.
                 // Unexpected...
                 //
-                info = -255;
-                return;
+                alglib.ap.assert(false, "LINREG: integrity check 0301 failed");
             }
             ar.rmserror = Math.Sqrt(ar.rmserror/npoints);
             ar.avgerror = ar.avgerror/npoints;
@@ -32754,7 +32990,7 @@ public partial class alglib
           -- ALGLIB --
              Copyright 25.10.2011 by Bochkanov Sergey
         *************************************************************************/
-        public static void filtersma(ref double[] x,
+        public static void filtersma(double[] x,
             int n,
             int k,
             alglib.xparams _params)
@@ -32892,7 +33128,7 @@ public partial class alglib
           -- ALGLIB --
              Copyright 25.10.2011 by Bochkanov Sergey
         *************************************************************************/
-        public static void filterema(ref double[] x,
+        public static void filterema(double[] x,
             int n,
             double alpha,
             alglib.xparams _params)
@@ -32942,7 +33178,7 @@ public partial class alglib
                             identity transformation (nothing changes).
 
         OUTPUT PARAMETERS:
-            X           -   array, whose first N elements were processed with SMA(K)
+            X           -   array, whose first N elements were processed with LRMA(K)
 
         NOTE 1: this function uses efficient in-place  algorithm  which  does not
                 allocate temporary arrays.
@@ -32962,7 +33198,7 @@ public partial class alglib
           -- ALGLIB --
              Copyright 25.10.2011 by Bochkanov Sergey
         *************************************************************************/
-        public static void filterlrma(ref double[] x,
+        public static void filterlrma(double[] x,
             int n,
             int k,
             alglib.xparams _params)
@@ -32971,7 +33207,6 @@ public partial class alglib
             int m = 0;
             double[,] xy = new double[0,0];
             double[] s = new double[0];
-            int info = 0;
             double a = 0;
             double b = 0;
             double vara = 0;
@@ -33018,8 +33253,7 @@ public partial class alglib
                 {
                     xy[i_,1] = x[i_+i1_];
                 }
-                linreg.lrlines(xy, s, m, ref info, ref a, ref b, ref vara, ref varb, ref covab, ref corrab, ref p, _params);
-                alglib.ap.assert(info==1, "FilterLRMA: internal error");
+                linreg.lrlines(xy, s, m, ref a, ref b, ref vara, ref varb, ref covab, ref corrab, ref p, _params);
                 x[i] = a+b*(m-1);
             }
         }
@@ -33127,9 +33361,9 @@ public partial class alglib
                 _result.sv = (double[])sv.Clone();
                 _result.forecasta = (double[])forecasta.Clone();
                 _result.nbasis = nbasis;
-                _result.solver = (evd.eigsubspacestate)solver.make_copy();
+                _result.solver = solver!=null ? (evd.eigsubspacestate)solver.make_copy() : null;
                 _result.xxt = (double[,])xxt.Clone();
-                _result.rs = (hqrnd.hqrndstate)rs.make_copy();
+                _result.rs = rs!=null ? (hqrnd.hqrndstate)rs.make_copy() : null;
                 _result.rngseed = rngseed;
                 _result.rtqueue = (int[])rtqueue.Clone();
                 _result.rtqueuecnt = rtqueuecnt;
@@ -33137,7 +33371,7 @@ public partial class alglib
                 _result.dbgcntevd = dbgcntevd;
                 _result.tmp0 = (double[])tmp0.Clone();
                 _result.tmp1 = (double[])tmp1.Clone();
-                _result.solverrep = (evd.eigsubspacereport)solverrep.make_copy();
+                _result.solverrep = solverrep!=null ? (evd.eigsubspacereport)solverrep.make_copy() : null;
                 _result.alongtrend = (double[])alongtrend.Clone();
                 _result.alongnoise = (double[])alongnoise.Clone();
                 _result.aseqtrajectory = (double[,])aseqtrajectory.Clone();
@@ -36143,31 +36377,25 @@ public partial class alglib
         /*************************************************************************
         Multiclass Fisher LDA
 
-        Subroutine finds coefficients of linear combination which optimally separates
-        training set on classes.
+        The function finds coefficients of a linear  combination  which  optimally
+        separates training set. Most suited for 2-class problems, see fisherldan()
+        for an variant that returns N-dimensional basis.
 
         INPUT PARAMETERS:
-            XY          -   training set, array[0..NPoints-1,0..NVars].
+            XY          -   training set, array[NPoints,NVars+1].
                             First NVars columns store values of independent
-                            variables, next column stores number of class (from 0
-                            to NClasses-1) which dataset element belongs to. Fractional
-                            values are rounded to nearest integer.
+                            variables, the next column stores class index (from 0
+                            to NClasses-1) which dataset element belongs to.
+                            Fractional values are rounded to the nearest integer.
+                            The class index must be in the [0,NClasses-1] range,
+                            an exception is generated otherwise.
             NPoints     -   training set size, NPoints>=0
             NVars       -   number of independent variables, NVars>=1
             NClasses    -   number of classes, NClasses>=2
 
 
         OUTPUT PARAMETERS:
-            Info        -   return code:
-                            * -4, if internal EVD subroutine hasn't converged
-                            * -2, if there is a point with class number
-                                  outside of [0..NClasses-1].
-                            * -1, if incorrect parameters was passed (NPoints<0,
-                                  NVars<1, NClasses<2)
-                            *  1, if task has been solved
-                            *  2, if there was a multicollinearity in training set,
-                                  but task has been solved.
-            W           -   linear combination coefficients, array[0..NVars-1]
+            W           -   linear combination coefficients, array[NVars]
 
           ! FREE EDITION OF ALGLIB:
           ! 
@@ -36186,8 +36414,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -36200,24 +36428,19 @@ public partial class alglib
             int npoints,
             int nvars,
             int nclasses,
-            ref int info,
             ref double[] w,
             alglib.xparams _params)
         {
             double[,] w2 = new double[0,0];
             int i_ = 0;
 
-            info = 0;
             w = new double[0];
 
-            fisherldan(xy, npoints, nvars, nclasses, ref info, ref w2, _params);
-            if( info>0 )
+            fisherldan(xy, npoints, nvars, nclasses, ref w2, _params);
+            w = new double[nvars];
+            for(i_=0; i_<=nvars-1;i_++)
             {
-                w = new double[nvars];
-                for(i_=0; i_<=nvars-1;i_++)
-                {
-                    w[i_] = w2[i_,0];
-                }
+                w[i_] = w2[i_,0];
             }
         }
 
@@ -36230,27 +36453,20 @@ public partial class alglib
         by quality of training set separation (in descending order).
 
         INPUT PARAMETERS:
-            XY          -   training set, array[0..NPoints-1,0..NVars].
+            XY          -   training set, array[NPoints,NVars+1].
                             First NVars columns store values of independent
-                            variables, next column stores number of class (from 0
-                            to NClasses-1) which dataset element belongs to. Fractional
-                            values are rounded to nearest integer.
+                            variables, the next column stores class index (from 0
+                            to NClasses-1) which dataset element belongs to.
+                            Fractional values are rounded to the nearest integer.
+                            The class index must be in the [0,NClasses-1] range,
+                            an exception is generated otherwise.
             NPoints     -   training set size, NPoints>=0
             NVars       -   number of independent variables, NVars>=1
             NClasses    -   number of classes, NClasses>=2
 
 
         OUTPUT PARAMETERS:
-            Info        -   return code:
-                            * -4, if internal EVD subroutine hasn't converged
-                            * -2, if there is a point with class number
-                                  outside of [0..NClasses-1].
-                            * -1, if incorrect parameters was passed (NPoints<0,
-                                  NVars<1, NClasses<2)
-                            *  1, if task has been solved
-                            *  2, if there was a multicollinearity in training set,
-                                  but task has been solved.
-            W           -   basis, array[0..NVars-1,0..NVars-1]
+            W           -   basis, array[NVars,NVars]
                             columns of matrix stores basis vectors, sorted by
                             quality of training set separation (in descending order)
 
@@ -36271,8 +36487,8 @@ public partial class alglib
           ! of this function:
           ! * high-performance native backend with same C# interface (C# version)
           ! * multithreading support (C++ and C# versions)
-          ! * hardware vendor (Intel) implementations of linear algebra primitives
-          !   (C++ and C# versions, x86/x64 platform)
+          ! * hardware vendor (Intel, ARM) implementations of linear algebra and
+          !   other primitives (C++ and C# versions)
           ! 
           ! We recommend you to read 'Working with commercial version' section  of
           ! ALGLIB Reference Manual in order to find out how to  use  performance-
@@ -36285,7 +36501,6 @@ public partial class alglib
             int npoints,
             int nvars,
             int nclasses,
-            ref int info,
             ref double[,] w,
             alglib.xparams _params)
         {
@@ -36314,27 +36529,22 @@ public partial class alglib
             double[] work = new double[0];
             int i_ = 0;
 
-            info = 0;
             w = new double[0,0];
 
             
             //
             // Test data
             //
-            if( (npoints<0 || nvars<1) || nclasses<2 )
-            {
-                info = -1;
-                return;
-            }
+            alglib.ap.assert(!(npoints<0), "FisherLDAN: NPoints<0");
+            alglib.ap.assert(!(nvars<1), "FisherLDAN: NVars<1");
+            alglib.ap.assert(!(nclasses<2), "FisherLDAN: NClasses<2");
             for(i=0; i<=npoints-1; i++)
             {
                 if( (int)Math.Round(xy[i,nvars])<0 || (int)Math.Round(xy[i,nvars])>=nclasses )
                 {
-                    info = -2;
-                    return;
+                    alglib.ap.assert(false, "FisherLDAN: class index is <0 or >NClasses-1");
                 }
             }
-            info = 1;
             
             //
             // Special case: NPoints<=1
@@ -36342,7 +36552,6 @@ public partial class alglib
             //
             if( npoints<=1 )
             {
-                info = 2;
                 w = new double[nvars, nvars];
                 for(i=0; i<=nvars-1; i++)
                 {
@@ -36487,8 +36696,7 @@ public partial class alglib
             //
             if( !evd.smatrixevd(st, nvars, 1, true, ref d, ref z, _params) )
             {
-                info = -4;
-                return;
+                alglib.ap.assert(false, "FisherLDAN: EVD solver failure");
             }
             w = new double[nvars, nvars];
             if( (double)(d[nvars-1])<=(double)(0) || (double)(d[0])<=(double)(1000*math.machineepsilon*d[nvars-1]) )
@@ -36500,7 +36708,6 @@ public partial class alglib
                 //
                 if( (double)(d[nvars-1])<=(double)(0) )
                 {
-                    info = 2;
                     for(i=0; i<=nvars-1; i++)
                     {
                         for(j=0; j<=nvars-1; j++)
@@ -36546,11 +36753,7 @@ public partial class alglib
                 {
                     xyproj[i,nvars-m] = xy[i,nvars];
                 }
-                fisherldan(xyproj, npoints, nvars-m, nclasses, ref info, ref wproj, _params);
-                if( info<0 )
-                {
-                    return;
-                }
+                fisherldan(xyproj, npoints, nvars-m, nclasses, ref wproj, _params);
                 ablas.rmatrixgemm(nvars, nvars-m, nvars-m, 1.0, z, 0, m, 0, wproj, 0, 0, 0, 0.0, w, 0, 0, _params);
                 for(k=nvars-m; k<=nvars-1; k++)
                 {
@@ -36559,7 +36762,6 @@ public partial class alglib
                         w[i_,k] = z[i_,k-(nvars-m)];
                     }
                 }
-                info = 2;
             }
             else
             {
@@ -36580,8 +36782,7 @@ public partial class alglib
                 }
                 if( !evd.smatrixevd(a, nvars, 1, true, ref d2, ref z2, _params) )
                 {
-                    info = -4;
-                    return;
+                    alglib.ap.assert(false, "FisherLDAN: EVD solver failure");
                 }
                 for(i=0; i<=nvars-1; i++)
                 {
@@ -36708,12 +36909,12 @@ public partial class alglib
                 _result.pw = (double[])pw.Clone();
                 _result.priorp = (double[,])priorp.Clone();
                 _result.regterm = regterm;
-                _result.bs = (minbleic.minbleicstate)bs.make_copy();
+                _result.bs = bs!=null ? (minbleic.minbleicstate)bs.make_copy() : null;
                 _result.repinneriterationscount = repinneriterationscount;
                 _result.repouteriterationscount = repouteriterationscount;
                 _result.repnfev = repnfev;
                 _result.repterminationtype = repterminationtype;
-                _result.br = (minbleic.minbleicreport)br.make_copy();
+                _result.br = br!=null ? (minbleic.minbleicreport)br.make_copy() : null;
                 _result.tmpp = (double[])tmpp.Clone();
                 _result.effectivew = (double[])effectivew.Clone();
                 _result.effectivebndl = (double[])effectivebndl.Clone();
@@ -38185,7 +38386,6 @@ public partial class alglib
             logitmcstate mcstate = new logitmcstate();
             int mcinfo = 0;
             int mcnfev = 0;
-            int solverinfo = 0;
             directdensesolvers.densesolverreport solverrep = new directdensesolvers.densesolverreport();
             int i_ = 0;
             int i1_ = 0;
@@ -38381,9 +38581,9 @@ public partial class alglib
                 // NOTE: it is important to use lower-triangle Cholesky
                 // factorization since it is much faster than higher-triangle version.
                 //
-                spd = trfac.spdmatrixcholesky(ref h, wcount, false, _params);
-                directdensesolvers.spdmatrixcholeskysolve(h, wcount, false, g, ref solverinfo, solverrep, ref wdir, _params);
-                spd = solverinfo>0;
+                spd = trfac.spdmatrixcholesky(h, wcount, false, _params);
+                directdensesolvers.spdmatrixcholeskysolve(h, wcount, false, g, ref wdir, solverrep, _params);
+                spd = solverrep.terminationtype>0;
                 if( spd )
                 {
                     
@@ -39714,7 +39914,7 @@ public partial class alglib
             public override alglib.apobject make_copy()
             {
                 knnbuffer _result = new knnbuffer();
-                _result.treebuf = (nearestneighbor.kdtreerequestbuffer)treebuf.make_copy();
+                _result.treebuf = treebuf!=null ? (nearestneighbor.kdtreerequestbuffer)treebuf.make_copy() : null;
                 _result.x = (double[])x.Clone();
                 _result.y = (double[])y.Clone();
                 _result.tags = (int[])tags.Clone();
@@ -39797,8 +39997,8 @@ public partial class alglib
                 _result.eps = eps;
                 _result.iscls = iscls;
                 _result.isdummy = isdummy;
-                _result.tree = (nearestneighbor.kdtree)tree.make_copy();
-                _result.buffer = (knnbuffer)buffer.make_copy();
+                _result.tree = tree!=null ? (nearestneighbor.kdtree)tree.make_copy() : null;
+                _result.buffer = buffer!=null ? (knnbuffer)buffer.make_copy() : null;
                 return _result;
             }
         };
@@ -41136,17 +41336,17 @@ public partial class alglib
                 _result.bestparameters = (double[])bestparameters.Clone();
                 _result.bestrmserror = bestrmserror;
                 _result.randomizenetwork = randomizenetwork;
-                _result.network = (mlpbase.multilayerperceptron)network.make_copy();
-                _result.optimizer = (minlbfgs.minlbfgsstate)optimizer.make_copy();
-                _result.optimizerrep = (minlbfgs.minlbfgsreport)optimizerrep.make_copy();
+                _result.network = network!=null ? (mlpbase.multilayerperceptron)network.make_copy() : null;
+                _result.optimizer = optimizer!=null ? (minlbfgs.minlbfgsstate)optimizer.make_copy() : null;
+                _result.optimizerrep = optimizerrep!=null ? (minlbfgs.minlbfgsreport)optimizerrep.make_copy() : null;
                 _result.wbuf0 = (double[])wbuf0.Clone();
                 _result.wbuf1 = (double[])wbuf1.Clone();
                 _result.allminibatches = (int[])allminibatches.Clone();
                 _result.currentminibatch = (int[])currentminibatch.Clone();
-                _result.rstate = (rcommstate)rstate.make_copy();
+                _result.rstate = rstate!=null ? (rcommstate)rstate.make_copy() : null;
                 _result.algoused = algoused;
                 _result.minibatchsize = minibatchsize;
-                _result.generator = (hqrnd.hqrndstate)generator.make_copy();
+                _result.generator = generator!=null ? (hqrnd.hqrndstate)generator.make_copy() : null;
                 return _result;
             }
         };
@@ -41186,9 +41386,9 @@ public partial class alglib
                 mlpetrnsession _result = new mlpetrnsession();
                 _result.trnsubset = (int[])trnsubset.Clone();
                 _result.valsubset = (int[])valsubset.Clone();
-                _result.mlpsessions = (alglib.smp.shared_pool)mlpsessions.make_copy();
-                _result.mlprep = (mlpreport)mlprep.make_copy();
-                _result.network = (mlpbase.multilayerperceptron)network.make_copy();
+                _result.mlpsessions = mlpsessions!=null ? (alglib.smp.shared_pool)mlpsessions.make_copy() : null;
+                _result.mlprep = mlprep!=null ? (mlpreport)mlprep.make_copy() : null;
+                _result.network = network!=null ? (mlpbase.multilayerperceptron)network.make_copy() : null;
                 return _result;
             }
         };
@@ -41246,8 +41446,8 @@ public partial class alglib
                 _result.datatype = datatype;
                 _result.npoints = npoints;
                 _result.densexy = (double[,])densexy.Clone();
-                _result.sparsexy = (sparse.sparsematrix)sparsexy.make_copy();
-                _result.session = (smlptrnsession)session.make_copy();
+                _result.sparsexy = sparsexy!=null ? (sparse.sparsematrix)sparsexy.make_copy() : null;
+                _result.session = session!=null ? (smlptrnsession)session.make_copy() : null;
                 _result.ngradbatch = ngradbatch;
                 _result.subset = (int[])subset.Clone();
                 _result.subsetsize = subsetsize;
@@ -41289,14 +41489,14 @@ public partial class alglib
             public override alglib.apobject make_copy()
             {
                 mlpparallelizationcv _result = new mlpparallelizationcv();
-                _result.network = (mlpbase.multilayerperceptron)network.make_copy();
-                _result.rep = (mlpreport)rep.make_copy();
+                _result.network = network!=null ? (mlpbase.multilayerperceptron)network.make_copy() : null;
+                _result.rep = rep!=null ? (mlpreport)rep.make_copy() : null;
                 _result.subset = (int[])subset.Clone();
                 _result.subsetsize = subsetsize;
                 _result.xyrow = (double[])xyrow.Clone();
                 _result.y = (double[])y.Clone();
                 _result.ngrad = ngrad;
-                _result.trnpool = (alglib.smp.shared_pool)trnpool.make_copy();
+                _result.trnpool = trnpool!=null ? (alglib.smp.shared_pool)trnpool.make_copy() : null;
                 return _result;
             }
         };
@@ -41380,9 +41580,7 @@ public partial class alglib
             int pass = 0;
             double[] wbest = new double[0];
             double ebest = 0;
-            int invinfo = 0;
             matinv.matinvreport invrep = new matinv.matinvreport();
-            int solverinfo = 0;
             directdensesolvers.densesolverreport solverrep = new directdensesolvers.densesolverreport();
             int i_ = 0;
 
@@ -41535,7 +41733,7 @@ public partial class alglib
                         }
                         hmod[i,i] = hmod[i,i]+lambdav;
                     }
-                    spd = trfac.spdmatrixcholesky(ref hmod, wcount, true, _params);
+                    spd = trfac.spdmatrixcholesky(hmod, wcount, true, _params);
                     rep.ncholesky = rep.ncholesky+1;
                     if( !spd )
                     {
@@ -41543,8 +41741,8 @@ public partial class alglib
                         nu = nu*2;
                         continue;
                     }
-                    directdensesolvers.spdmatrixcholeskysolve(hmod, wcount, true, g, ref solverinfo, solverrep, ref wdir, _params);
-                    if( solverinfo<0 )
+                    directdensesolvers.spdmatrixcholeskysolve(hmod, wcount, true, g, ref wdir, solverrep, _params);
+                    if( solverrep.terminationtype<0 )
                     {
                         lambdav = lambdav*lambdaup*nu;
                         nu = nu*2;
@@ -41591,8 +41789,8 @@ public partial class alglib
                     //
                     // Optimize using inv(cholesky(H)) as preconditioner
                     //
-                    matinv.rmatrixtrinverse(ref hmod, wcount, true, false, ref invinfo, invrep, _params);
-                    if( invinfo<=0 )
+                    matinv.rmatrixtrinverse(hmod, wcount, true, false, invrep, _params);
+                    if( invrep.terminationtype<=0 )
                     {
                         
                         //
@@ -44664,8 +44862,8 @@ public partial class alglib
                 cursize = 763;
                 idx0 = -541;
                 idx1 = -698;
-                decay = -900;
-                v = -318;
+                decay = -900.0;
+                v = -318.0;
             }
             if( session.rstate.stage==0 )
             {

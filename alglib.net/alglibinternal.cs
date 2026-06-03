@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.19.0 (source code generated 2022-06-07)
+ALGLIB 4.07.0 (source code generated 2025-12-29)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -17,9 +17,11 @@ A copy of the GNU General Public License is available at
 http://www.fsf.org/licensing/licenses
 >>> END OF LICENSE >>>
 *************************************************************************/
+#pragma warning disable 1691
 #pragma warning disable 162
 #pragma warning disable 164
 #pragma warning disable 219
+#pragma warning disable 8981
 using System;
 
 public partial class alglib
@@ -30,7 +32,7 @@ public partial class alglib
 }
 public partial class alglib
 {
-    public class apserv
+    public partial class apserv
     {
         /*************************************************************************
         Buffers for internal functions which need buffers:
@@ -305,6 +307,97 @@ public partial class alglib
         };
 
 
+        /*************************************************************************
+        Counter used to compute average value of a set of numbers
+
+          -- ALGLIB --
+             Copyright 06.07.2022 by Bochkanov Sergey
+        *************************************************************************/
+        public class savgcounter : apobject
+        {
+            public double rsum;
+            public double rcnt;
+            public double prior;
+            public savgcounter()
+            {
+                init();
+            }
+            public override void init()
+            {
+            }
+            public override alglib.apobject make_copy()
+            {
+                savgcounter _result = new savgcounter();
+                _result.rsum = rsum;
+                _result.rcnt = rcnt;
+                _result.prior = prior;
+                return _result;
+            }
+        };
+
+
+        /*************************************************************************
+        Counter used to compute a quantile of a set of numbers. Internally stores
+        entire set, recomputes quantile with O(N) algo every time we req
+
+          -- ALGLIB --
+             Copyright 06.07.2022 by Bochkanov Sergey
+        *************************************************************************/
+        public class squantilecounter : apobject
+        {
+            public int cnt;
+            public double[] elems;
+            public double prior;
+            public squantilecounter()
+            {
+                init();
+            }
+            public override void init()
+            {
+                elems = new double[0];
+            }
+            public override alglib.apobject make_copy()
+            {
+                squantilecounter _result = new squantilecounter();
+                _result.cnt = cnt;
+                _result.elems = (double[])elems.Clone();
+                _result.prior = prior;
+                return _result;
+            }
+        };
+
+
+        /*************************************************************************
+        Debug timer used to measure wall clock time for tracing:
+        * no warranties regarding accuracy
+        * when ALGLIB is compiled in OS-agnostic mode, returns zeros
+
+          -- ALGLIB --
+             Copyright 06.07.2022 by Bochkanov Sergey
+        *************************************************************************/
+        public class stimer : apobject
+        {
+            public int ttotal;
+            public int tcurrent;
+            public bool isrunning;
+            public stimer()
+            {
+                init();
+            }
+            public override void init()
+            {
+            }
+            public override alglib.apobject make_copy()
+            {
+                stimer _result = new stimer();
+                _result.ttotal = ttotal;
+                _result.tcurrent = tcurrent;
+                _result.isrunning = isrunning;
+                return _result;
+            }
+        };
+
+
 
 
         /*************************************************************************
@@ -325,7 +418,7 @@ public partial class alglib
             double s,
             alglib.xparams _params)
         {
-            alglib.ap.seterrorflag(ref flag, (double)(Math.Abs(val-refval))>(double)(tol*Math.Max(Math.Abs(refval), s)), "apserv.ap:162");
+            alglib.ap.seterrorflag(ref flag, (double)(Math.Abs(val-refval))>(double)(tol*Math.Max(Math.Abs(refval), s)), "apserv.ap:206");
         }
 
 
@@ -342,6 +435,20 @@ public partial class alglib
 
             result = false;
             return result;
+        }
+
+
+        /*************************************************************************
+        The function "touches" boolean - it is used  to  avoid  compiler  messages
+        about unused variables (in rare cases when we do NOT want to remove  these
+        variables).
+
+          -- ALGLIB --
+             Copyright 17.09.2012 by Bochkanov Sergey
+        *************************************************************************/
+        public static void touchboolean(ref bool a,
+            alglib.xparams _params)
+        {
         }
 
 
@@ -405,6 +512,29 @@ public partial class alglib
              Copyright 18.05.2015 by Bochkanov Sergey
         *************************************************************************/
         public static int coalescei(int a,
+            int b,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = a;
+            if( a==0 )
+            {
+                result = b;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        The function performs zero-coalescing on integer value.
+
+        NOTE: no check is performed for B<>0
+
+          -- ALGLIB --
+             Copyright 18.05.2015 by Bochkanov Sergey
+        *************************************************************************/
+        public static int icoalesce(int a,
             int b,
             alglib.xparams _params)
         {
@@ -1346,9 +1476,66 @@ public partial class alglib
             v = 0;
             for(i=0; i<=n-1; i++)
             {
-                v = 0.01*v+x[i];
+                v = 1+0.01*v+x[i];
             }
             result = math.isfinite(v);
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function checks that length(X) is at least N and first N values  from
+        X[] are finite or NANs
+
+          -- ALGLIB --
+             Copyright 18.06.2010 by Bochkanov Sergey
+        *************************************************************************/
+        public static bool isfiniteornanvector(double[] x,
+            int n,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int i = 0;
+            double v = 0;
+
+            alglib.ap.assert(n>=0, "APSERVIsFiniteVector: internal error (N<0)");
+            if( n==0 )
+            {
+                result = true;
+                return result;
+            }
+            if( alglib.ap.len(x)<n )
+            {
+                result = false;
+                return result;
+            }
+            
+            //
+            // Is it entirely finite?
+            //
+            v = 0;
+            for(i=0; i<=n-1; i++)
+            {
+                v = 0.01*v+x[i];
+            }
+            if( math.isfinite(v) )
+            {
+                result = true;
+                return result;
+            }
+            
+            //
+            // OK, check that either finite or nan
+            //
+            for(i=0; i<=n-1; i++)
+            {
+                if( !math.isfinite(x[i]) && !Double.IsNaN(x[i]) )
+                {
+                    result = false;
+                    return result;
+                }
+            }
+            result = true;
             return result;
         }
 
@@ -1458,6 +1645,39 @@ public partial class alglib
 
 
         /*************************************************************************
+        This function checks that all values from X[0..M-1,0..N-1] are finite
+
+          -- ALGLIB --
+             Copyright 18.06.2010 by Bochkanov Sergey
+        *************************************************************************/
+        public static bool isfinitecmatrix(complex[,] x,
+            int m,
+            int n,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int i = 0;
+            int j = 0;
+
+            alglib.ap.assert(n>=0, "IsFiniteCMatrix: internal error (N<0)");
+            alglib.ap.assert(m>=0, "IsFiniteCMatrix: internal error (M<0)");
+            for(i=0; i<=m-1; i++)
+            {
+                for(j=0; j<=n-1; j++)
+                {
+                    if( !math.isfinite(x[i,j].x) || !math.isfinite(x[i,j].y) )
+                    {
+                        result = false;
+                        return result;
+                    }
+                }
+            }
+            result = true;
+            return result;
+        }
+
+
+        /*************************************************************************
         This function checks that size of X is at least NxN and all values from
         upper/lower triangle of X[0..N-1,0..N-1] are finite
 
@@ -1520,6 +1740,51 @@ public partial class alglib
              Copyright 18.06.2010 by Bochkanov Sergey
         *************************************************************************/
         public static bool apservisfinitectrmatrix(complex[,] x,
+            int n,
+            bool isupper,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int i = 0;
+            int j1 = 0;
+            int j2 = 0;
+            int j = 0;
+
+            alglib.ap.assert(n>=0, "APSERVIsFiniteCTRMatrix: internal error (N<0)");
+            for(i=0; i<=n-1; i++)
+            {
+                if( isupper )
+                {
+                    j1 = i;
+                    j2 = n-1;
+                }
+                else
+                {
+                    j1 = 0;
+                    j2 = i;
+                }
+                for(j=j1; j<=j2; j++)
+                {
+                    if( !math.isfinite(x[i,j].x) || !math.isfinite(x[i,j].y) )
+                    {
+                        result = false;
+                        return result;
+                    }
+                }
+            }
+            result = true;
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function checks that all values from upper/lower triangle of
+        X[0..N-1,0..N-1] are finite
+
+          -- ALGLIB --
+             Copyright 18.06.2010 by Bochkanov Sergey
+        *************************************************************************/
+        public static bool isfinitectrmatrix(complex[,] x,
             int n,
             bool isupper,
             alglib.xparams _params)
@@ -2042,6 +2307,36 @@ public partial class alglib
 
 
         /*************************************************************************
+        This function is used to swap two "entries" in 1-dimensional array composed
+        from D-element entries
+        *************************************************************************/
+        public static void swapentriesb(bool[] a,
+            int i0,
+            int i1,
+            int entrywidth,
+            alglib.xparams _params)
+        {
+            int offs0 = 0;
+            int offs1 = 0;
+            int j = 0;
+            bool v = new bool();
+
+            if( i0==i1 )
+            {
+                return;
+            }
+            offs0 = i0*entrywidth;
+            offs1 = i1*entrywidth;
+            for(j=0; j<=entrywidth-1; j++)
+            {
+                v = a[offs0+j];
+                a[offs0+j] = a[offs1+j];
+                a[offs1+j] = v;
+            }
+        }
+
+
+        /*************************************************************************
         This function is used to swap two elements of the vector
         *************************************************************************/
         public static void swapelements(double[] a,
@@ -2070,6 +2365,26 @@ public partial class alglib
             alglib.xparams _params)
         {
             int v = 0;
+
+            if( i0==i1 )
+            {
+                return;
+            }
+            v = a[i0];
+            a[i0] = a[i1];
+            a[i1] = v;
+        }
+
+
+        /*************************************************************************
+        This function is used to swap two elements of the vector
+        *************************************************************************/
+        public static void swapelementsb(bool[] a,
+            int i0,
+            int i1,
+            alglib.xparams _params)
+        {
+            bool v = new bool();
 
             if( i0==i1 )
             {
@@ -2152,6 +2467,181 @@ public partial class alglib
 
 
         /*************************************************************************
+        This function is used to set value of an int variable;  name of  the
+        function suggests that increment is done in multithreaded setting  in  the
+        thread-unsafe manner (optional progress reports which do not need guaranteed
+        correctness), although the library may try to use safe options, if available.
+        *************************************************************************/
+        public static void threadunsafeset(ref int v,
+            int x,
+            alglib.xparams _params)
+        {
+            v = x;
+        }
+
+
+        /*************************************************************************
+        This function is used to read value of an int variable;  name of  the
+        function suggests that read is done in multithreaded setting  in  the
+        thread-unsafe manner (optional progress reports which do not need guaranteed
+        correctness), although the library may try to use safe options, if available.
+        *************************************************************************/
+        public static int threadunsafeget(ref int v,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = v;
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function is used to increment value of a real variable;  name of  the
+        function suggests that increment is done in multithreaded setting  in  the
+        thread-unsafe manner (optional progress reports which do not need guaranteed
+        correctness)
+        *************************************************************************/
+        public static void rthreadunsafeincby(ref double v,
+            double x,
+            alglib.xparams _params)
+        {
+            v = v+x;
+        }
+
+
+        /*************************************************************************
+        This function is used to set value of a real variable;  name of  the
+        function suggests that increment is done in multithreaded setting  in  the
+        thread-unsafe manner (optional progress reports which do not need guaranteed
+        correctness), although the library may try to use safe options, if available.
+        *************************************************************************/
+        public static void rthreadunsafeset(ref double v,
+            double x,
+            alglib.xparams _params)
+        {
+            v = x;
+        }
+
+
+        /*************************************************************************
+        This function is used to read value of a real variable;  name of  the
+        function suggests that read is done in multithreaded setting  in  the
+        thread-unsafe manner (optional progress reports which do not need guaranteed
+        correctness), although the library may try to use safe options, if available.
+        *************************************************************************/
+        public static double rthreadunsafeget(ref double v,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = v;
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function performs weak atomic fetch-add. Atomicity is  guaranteed  on
+        C# targets and on C++ targets with AE_OS #defined.
+
+        It returns result prior to the addition.
+        *************************************************************************/
+        public static int weakatomicfetchadd(ref int v,
+            int n,
+            alglib.xparams _params)
+        {
+            int result = 0;
+            int provisional = 0;
+
+            while( true )
+            {
+                provisional = v;
+                result = System.Threading.Interlocked.CompareExchange(ref v, provisional+n, provisional);
+                if( result==provisional )
+                {
+                    return result;
+                }
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function performs weak atomic spinlock acquisition. The function waits
+        for the spinlock to become EXPECTED and then assigns NEWVAL.
+
+        Atomicity is guaranteed on C# targets and on C++ targets with AE_OS #defined.
+        *************************************************************************/
+        public static void weakatomicacquirelock(ref int v,
+            int expected,
+            int newval,
+            alglib.xparams _params)
+        {
+            while( true )
+            {
+                while( System.Threading.Thread.VolatileRead(ref v)!=expected )
+                {
+                }
+                if( System.Threading.Interlocked.CompareExchange(ref v, newval, expected)==expected )
+                {
+                    return;
+                }
+            }
+        }
+
+
+        /*************************************************************************
+        This function performs weak atomic spinlock acquisition. The function waits
+        for the spinlock to become EXPECTED and then assigns NEWVAL.
+
+        Atomicity is guaranteed on C# targets and on C++ targets with AE_OS #defined.
+        *************************************************************************/
+        public static void weakatomicacquirelockv(int[] v,
+            int idx,
+            int expected,
+            int newval,
+            alglib.xparams _params)
+        {
+            while( true )
+            {
+                while( System.Threading.Thread.VolatileRead(ref v[idx])!=expected )
+                {
+                }
+                if( System.Threading.Interlocked.CompareExchange(ref v[idx], newval, expected)==expected )
+                {
+                    return;
+                }
+            }
+        }
+
+
+        /*************************************************************************
+        This function waits for a variable to become equal to EXPECTED.  It  waits
+        for at most WAITFOR iterations.
+
+        It returns after the variable has become EXPECTED, or the timer has expired.
+        It does not return the specific for stopping because it  may  be  possible
+        that the variable status has changed in the meantime.
+        *************************************************************************/
+        public static void weakatomicwaitforv(int[] v,
+            int idx,
+            int expected,
+            int waitfor,
+            alglib.xparams _params)
+        {
+            int i = 0;
+
+            for(i=0; i<=waitfor-1; i++)
+            {
+                if( System.Threading.Thread.VolatileRead(ref v[idx])==expected )
+                {
+                    return;
+                }
+            }
+        }
+
+
+        /*************************************************************************
         This function performs two operations:
         1. decrements value of integer variable, if it is positive
         2. explicitly sets variable to zero if it is non-positive
@@ -2179,6 +2669,27 @@ public partial class alglib
             alglib.xparams _params)
         {
             double result = 0;
+
+            if( x>=0 )
+            {
+                result = 1;
+            }
+            else
+            {
+                result = -1;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function returns +1 or -1 depending on sign of X.
+        x=0 results in +1 being returned.
+        *************************************************************************/
+        public static int ipossign(double x,
+            alglib.xparams _params)
+        {
+            int result = 0;
 
             if( (double)(x)>=(double)(0) )
             {
@@ -2301,6 +2812,34 @@ public partial class alglib
 
 
         /*************************************************************************
+        This function returns min(i0,i1,i2,i3)
+        *************************************************************************/
+        public static int imin4(int i0,
+            int i1,
+            int i2,
+            int i3,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = i0;
+            if( i1<result )
+            {
+                result = i1;
+            }
+            if( i2<result )
+            {
+                result = i2;
+            }
+            if( i3<result )
+            {
+                result = i3;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
         This function returns max(i0,i1)
         *************************************************************************/
         public static int imax2(int i0,
@@ -2342,6 +2881,34 @@ public partial class alglib
 
 
         /*************************************************************************
+        This function returns max(i0,i1,i2,i3)
+        *************************************************************************/
+        public static int imax4(int i0,
+            int i1,
+            int i2,
+            int i3,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = i0;
+            if( i1>result )
+            {
+                result = i1;
+            }
+            if( i2>result )
+            {
+                result = i2;
+            }
+            if( i3>result )
+            {
+                result = i3;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
         This function returns max(r0,r1,r2)
         *************************************************************************/
         public static double rmax3(double r0,
@@ -2352,13 +2919,56 @@ public partial class alglib
             double result = 0;
 
             result = r0;
-            if( (double)(r1)>(double)(result) )
+            if( r1>result )
             {
                 result = r1;
             }
-            if( (double)(r2)>(double)(result) )
+            if( r2>result )
             {
                 result = r2;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function returns min(r0,r1,r2)
+        *************************************************************************/
+        public static double rmin3(double r0,
+            double r1,
+            double r2,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = r0;
+            if( r1<result )
+            {
+                result = r1;
+            }
+            if( r2<result )
+            {
+                result = r2;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function returns max(|r0|,|r1|,|r2|)
+        *************************************************************************/
+        public static double rmaxabs2(double r0,
+            double r1,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            r0 = Math.Abs(r0);
+            r1 = Math.Abs(r1);
+            result = r0;
+            if( r1>result )
+            {
+                result = r1;
             }
             return result;
         }
@@ -2378,11 +2988,11 @@ public partial class alglib
             r1 = Math.Abs(r1);
             r2 = Math.Abs(r2);
             result = r0;
-            if( (double)(r1)>(double)(result) )
+            if( r1>result )
             {
                 result = r1;
             }
-            if( (double)(r2)>(double)(result) )
+            if( r2>result )
             {
                 result = r2;
             }
@@ -2470,6 +3080,72 @@ public partial class alglib
                 return result;
             }
             result = x;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Boolean case-2: returns V0 if Cond=True, V1 otherwise
+        *************************************************************************/
+        public static bool bcase2(bool cond,
+            bool v0,
+            bool v1,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+
+            if( cond )
+            {
+                result = v0;
+            }
+            else
+            {
+                result = v1;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Integer case-2: returns V0 if Cond=True, V1 otherwise
+        *************************************************************************/
+        public static int icase2(bool cond,
+            int v0,
+            int v1,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            if( cond )
+            {
+                result = v0;
+            }
+            else
+            {
+                result = v1;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Real case-2: returns V0 if Cond=True, V1 otherwise
+        *************************************************************************/
+        public static double rcase2(bool cond,
+            double v0,
+            double v1,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            if( cond )
+            {
+                result = v0;
+            }
+            else
+            {
+                result = v1;
+            }
             return result;
         }
 
@@ -2584,6 +3260,28 @@ public partial class alglib
 
 
         /*************************************************************************
+        Allocation of serializer: boolean array
+        *************************************************************************/
+        public static void allocbooleanarray(alglib.serializer s,
+            bool[] v,
+            int n,
+            alglib.xparams _params)
+        {
+            int i = 0;
+
+            if( n<0 )
+            {
+                n = alglib.ap.len(v);
+            }
+            s.alloc_entry();
+            for(i=0; i<=n-1; i++)
+            {
+                s.alloc_entry();
+            }
+        }
+
+
+        /*************************************************************************
         Serialization: complex value
         *************************************************************************/
         public static void serializerealarray(alglib.serializer s,
@@ -2601,6 +3299,28 @@ public partial class alglib
             for(i=0; i<=n-1; i++)
             {
                 s.serialize_double(v[i]);
+            }
+        }
+
+
+        /*************************************************************************
+        Serialization: boolean array
+        *************************************************************************/
+        public static void serializebooleanarray(alglib.serializer s,
+            bool[] v,
+            int n,
+            alglib.xparams _params)
+        {
+            int i = 0;
+
+            if( n<0 )
+            {
+                n = alglib.ap.len(v);
+            }
+            s.serialize_int(n);
+            for(i=0; i<=n-1; i++)
+            {
+                s.serialize_bool(v[i]);
             }
         }
 
@@ -2627,6 +3347,33 @@ public partial class alglib
             for(i=0; i<=n-1; i++)
             {
                 t = s.unserialize_double();
+                v[i] = t;
+            }
+        }
+
+
+        /*************************************************************************
+        Unserialization: boolean value
+        *************************************************************************/
+        public static void unserializebooleanarray(alglib.serializer s,
+            ref bool[] v,
+            alglib.xparams _params)
+        {
+            int n = 0;
+            int i = 0;
+            bool t = new bool();
+
+            v = new bool[0];
+
+            n = s.unserialize_int();
+            if( n==0 )
+            {
+                return;
+            }
+            v = new bool[n];
+            for(i=0; i<=n-1; i++)
+            {
+                t = s.unserialize_bool();
                 v[i] = t;
             }
         }
@@ -2900,6 +3647,7 @@ public partial class alglib
         {
             a = new int[0];
 
+            a = new int[0];
         }
 
 
@@ -2911,6 +3659,7 @@ public partial class alglib
         {
             a = new double[0];
 
+            a = new double[0];
         }
 
 
@@ -2922,6 +3671,7 @@ public partial class alglib
         {
             a = new double[0,0];
 
+            a = new double[0, 0];
         }
 
 
@@ -2964,6 +3714,148 @@ public partial class alglib
 
 
         /*************************************************************************
+        Binary search in an integer array. If an element is present twice or more,
+        returns the leftmost one. If the element is not present, returns position
+        where this element can be inserted.
+
+        The range [I0,I1) is searched.
+
+          -- ALGLIB --
+             Copyright 11.06.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static int ibinarysearchlft(int[] a,
+            int i0,
+            int i1,
+            int v,
+            alglib.xparams _params)
+        {
+            int result = 0;
+            int m = 0;
+
+            while( i0<i1 )
+            {
+                m = (i0+i1)/2;
+                if( a[m]<v )
+                {
+                    i0 = m+1;
+                }
+                else
+                {
+                    i1 = m;
+                }
+            }
+            result = i0;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Binary search in an integer array. If an element is not present, raises an
+        exception. Returns element position.
+
+        The range [I0,I1) is searched.
+
+          -- ALGLIB --
+             Copyright 11.06.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static int ibinarysearchexisting(int[] a,
+            int i0,
+            int i1,
+            int v,
+            alglib.xparams _params)
+        {
+            int result = 0;
+            int ori1 = 0;
+            int m = 0;
+
+            ori1 = i1;
+            while( i0<i1 )
+            {
+                m = (i0+i1)/2;
+                if( a[m]<v )
+                {
+                    i0 = m+1;
+                }
+                else
+                {
+                    i1 = m;
+                }
+            }
+            alglib.ap.assert(i0<ori1 && a[i0]==v, "iBinarySearchExisting: the element is not found");
+            result = i0;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Linear search in an integer array for a specific element, returns True or
+        False. Can deal with unsorted arrays.
+
+        The range [I0,I1) is searched.
+
+          -- ALGLIB --
+             Copyright 11.06.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static bool ilinearsearchispresent(int[] a,
+            int i0,
+            int i1,
+            int v,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int i = 0;
+
+            result = false;
+            for(i=i0; i<=i1-1; i++)
+            {
+                if( a[i]==v )
+                {
+                    result = true;
+                    return result;
+                }
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Binary search in an integer array for a specific element, returns True or
+        False. Needs array to be sorted by ascending.
+
+        The range [I0,I1) is searched.
+
+          -- ALGLIB --
+             Copyright 11.06.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static bool ibinarysearchispresent(int[] a,
+            int i0,
+            int i1,
+            int v,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int ori1 = 0;
+            int m = 0;
+
+            ori1 = i1;
+            while( i0<i1 )
+            {
+                m = (i0+i1)/2;
+                if( a[m]<v )
+                {
+                    i0 = m+1;
+                }
+                else
+                {
+                    i1 = m;
+                }
+            }
+            result = i0<ori1 && a[i0]==v;
+            return result;
+        }
+
+
+        /*************************************************************************
         This function searches integer array. Elements in this array are actually
         records, each NRec elements wide. Each record has unique header - NHeader
         integer values, which identify it. Records are lexicographically sorted by
@@ -2977,7 +3869,7 @@ public partial class alglib
           -- ALGLIB --
              Copyright 28.03.2011 by Bochkanov Sergey
         *************************************************************************/
-        public static int recsearch(ref int[] a,
+        public static int recsearch(int[] a,
             int nrec,
             int nheader,
             int i0,
@@ -3188,6 +4080,65 @@ public partial class alglib
 
             nn = 2*matrixtilesizeb(_params);
             result = Math.Max(0.95*2*nn*nn*nn, 1.0E7);
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function returns minimum time required to accumulate statistics about
+        problem solution costs. Algorithms  utilizing  adaptive  parallelism  will
+        wait until information from sufficiently many tasks is accumulated  before
+        deciding on adaptive parallelism status.
+
+        The time is returned in milliseconds
+
+          -- ALGLIB --
+             Copyright 10.01.2018 by Bochkanov Sergey
+        *************************************************************************/
+        public static double adaptiveparallelismtimerequired(alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = 25.0;
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function returns minimum amount of subproblems required to accumulate
+        statistics about problem solution costs. Algorithms  utilizing  adaptive
+        parallelism will wait until information from sufficiently many tasks is
+        accumulated  before deciding on adaptive parallelism status.
+
+        The time is returned in milliseconds
+
+          -- ALGLIB --
+             Copyright 10.01.2018 by Bochkanov Sergey
+        *************************************************************************/
+        public static double adaptiveparallelismcountrequired(alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = 2.0;
+            return result;
+        }
+
+
+        /*************************************************************************
+        This function returns minimum time of a subproblem that justifies activation
+        of a previously inactive parallelism (root problem insertion and worker
+        queue activation).
+
+        The time is returned in milliseconds
+
+          -- ALGLIB --
+             Copyright 10.01.2018 by Bochkanov Sergey
+        *************************************************************************/
+        public static double workerstartthresholdms(alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = 2.0;
             return result;
         }
 
@@ -3614,6 +4565,389 @@ public partial class alglib
         }
 
 
+        /*************************************************************************
+        Outputs specified number of spaces
+        *************************************************************************/
+        public static void tracespaces(int cnt,
+            alglib.xparams _params)
+        {
+            int i = 0;
+
+            for(i=0; i<=cnt-1; i++)
+            {
+                alglib.ap.trace(" ");
+            }
+        }
+
+
+        /*************************************************************************
+        Outputs specified number of ">" symbols
+        *************************************************************************/
+        public static void traceangles(int cnt,
+            alglib.xparams _params)
+        {
+            int i = 0;
+
+            for(i=0; i<=cnt-1; i++)
+            {
+                alglib.ap.trace(">");
+            }
+        }
+
+
+        /*************************************************************************
+        Minimum speedup feasible for multithreading
+        *************************************************************************/
+        public static double minspeedup(alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = 1.5;
+            return result;
+        }
+
+
+        #if ALGLIB_NO_FAST_KERNELS
+        /*************************************************************************
+        Maximum concurrency on given system, with given compilation settings
+        *************************************************************************/
+        public static int maxconcurrency(alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = 1;
+            return result;
+        }
+        #endif
+
+
+        /*************************************************************************
+        Initialize SAvgCounter
+
+        Prior value is a value that is returned when no values are in the buffer
+        *************************************************************************/
+        public static void savgcounterinit(savgcounter c,
+            double priorvalue,
+            alglib.xparams _params)
+        {
+            c.rsum = 0;
+            c.rcnt = 0;
+            c.prior = priorvalue;
+        }
+
+
+        /*************************************************************************
+        Enqueue value into SAvgCounter
+        *************************************************************************/
+        public static void savgcounterenqueue(savgcounter c,
+            double v,
+            alglib.xparams _params)
+        {
+            c.rsum = c.rsum+v;
+            c.rcnt = c.rcnt+1;
+        }
+
+
+        /*************************************************************************
+        Enqueue value into SAvgCounter
+        *************************************************************************/
+        public static double savgcounterget(savgcounter c,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            if( (double)(c.rcnt)==(double)(0) )
+            {
+                result = c.prior;
+            }
+            else
+            {
+                result = c.rsum/c.rcnt;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Initialize SQuantileCounter
+
+        Prior value is a value that is returned when no values are in the buffer
+        *************************************************************************/
+        public static void squantilecounterinit(squantilecounter c,
+            double priorvalue,
+            alglib.xparams _params)
+        {
+            c.cnt = 0;
+            c.prior = priorvalue;
+        }
+
+
+        /*************************************************************************
+        Enqueue value into SQuantileCounter
+        *************************************************************************/
+        public static void squantilecounterenqueue(squantilecounter c,
+            double v,
+            alglib.xparams _params)
+        {
+            if( alglib.ap.len(c.elems)==c.cnt )
+            {
+                rvectorresize(ref c.elems, 2*c.cnt+1, _params);
+            }
+            c.elems[c.cnt] = v;
+            c.cnt = c.cnt+1;
+        }
+
+
+        /*************************************************************************
+        Get k-th quantile. Thread-unsafe, modifies internal structures.
+
+        0<=Q<=1.
+        *************************************************************************/
+        public static double squantilecounterget(squantilecounter c,
+            double q,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            int left = 0;
+            int right = 0;
+            int k = 0;
+            int pivotindex = 0;
+            double pivotvalue = 0;
+            int storeindex = 0;
+            int i = 0;
+
+            alglib.ap.assert((double)(q)>=(double)(0) && (double)(q)<=(double)(1), "SQuantileCounterGet: incorrect Q");
+            if( c.cnt==0 )
+            {
+                result = c.prior;
+                return result;
+            }
+            if( c.cnt==1 )
+            {
+                result = c.elems[0];
+                return result;
+            }
+            k = (int)Math.Round(q*(c.cnt-1));
+            left = 0;
+            right = c.cnt-1;
+            while( true )
+            {
+                if( left==right )
+                {
+                    result = c.elems[left];
+                    break;
+                }
+                pivotindex = left+(right-left)/2;
+                pivotvalue = c.elems[pivotindex];
+                swapelements(c.elems, pivotindex, right, _params);
+                storeindex = left;
+                for(i=left; i<=right-1; i++)
+                {
+                    if( (double)(c.elems[i])<(double)(pivotvalue) )
+                    {
+                        swapelements(c.elems, storeindex, i, _params);
+                        storeindex = storeindex+1;
+                    }
+                }
+                swapelements(c.elems, storeindex, right, _params);
+                pivotindex = storeindex;
+                if( pivotindex==k )
+                {
+                    result = c.elems[k];
+                    break;
+                }
+                if( k<pivotindex )
+                {
+                    right = pivotindex-1;
+                }
+                else
+                {
+                    left = pivotindex+1;
+                }
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Initialize timer
+        *************************************************************************/
+        public static void stimerinit(stimer t,
+            alglib.xparams _params)
+        {
+            t.ttotal = 0;
+            t.isrunning = false;
+        }
+
+
+        /*************************************************************************
+        Start measurement.
+
+        This function may be slow on some systems  because  it  accesses  internal
+        timer. Depending on the implementation, it may have negligible or significant
+        cost.
+        *************************************************************************/
+        public static void stimerstart(stimer t,
+            alglib.xparams _params)
+        {
+            alglib.ap.assert(!t.isrunning, "STimerStart: attempt to start already started timer");
+            t.isrunning = true;
+            t.tcurrent = unchecked((int)(System.DateTime.UtcNow.Ticks/10000));
+        }
+
+
+        /*************************************************************************
+        Stop measurement, add time to the already accumulated
+
+        This function may be slow on some systems  because  it  accesses  internal
+        timer. Depending on the implementation, it may have negligible or significant
+        cost.
+        *************************************************************************/
+        public static void stimerstop(stimer t,
+            alglib.xparams _params)
+        {
+            int tc = 0;
+
+            alglib.ap.assert(t.isrunning, "STimerStop: attempt to stop already stopped timer");
+            t.isrunning = false;
+            tc = unchecked((int)(System.DateTime.UtcNow.Ticks/10000));
+            if( tc>=t.tcurrent )
+            {
+                tc = tc-t.tcurrent;
+            }
+            else
+            {
+                tc = t.tcurrent-tc;
+            }
+            t.ttotal = t.ttotal+tc;
+        }
+
+
+        /*************************************************************************
+        Start measurement if Cond is True; do nothing otherwise.
+
+        Accessing timer can be slow on some systems, thus one should not use timers
+        too frequently. This function allows to access the timer when Cond is True,
+        but completely skip timer-related infrastructure and perform a quick  exit
+        when Cond is False.
+        *************************************************************************/
+        public static void stimerstartcond(stimer t,
+            bool cond,
+            alglib.xparams _params)
+        {
+            if( !cond )
+            {
+                return;
+            }
+            alglib.ap.assert(!t.isrunning, "STimerStart: attempt to start already started timer");
+            t.isrunning = true;
+            t.tcurrent = unchecked((int)(System.DateTime.UtcNow.Ticks/10000));
+        }
+
+
+        /*************************************************************************
+        Stop measurement, add time to the already accumulated, if Cond is True.
+        Do nothing otherwise.
+
+        Accessing timer can be slow on some systems, thus one should not use timers
+        too frequently. This function allows to access the timer when Cond is True,
+        but completely skip timer-related infrastructure and perform a quick  exit
+        when Cond is False.
+        *************************************************************************/
+        public static void stimerstopcond(stimer t,
+            bool cond,
+            alglib.xparams _params)
+        {
+            double tc = 0;
+
+            if( !cond )
+            {
+                return;
+            }
+            alglib.ap.assert(t.isrunning, "STimerStop: attempt to stop already stopped timer");
+            t.isrunning = false;
+            tc = unchecked((int)(System.DateTime.UtcNow.Ticks/10000))-t.tcurrent;
+            if( (double)(tc)<(double)(0) )
+            {
+                tc = tc+4294967296.0;
+            }
+            t.ttotal = t.ttotal+(int)Math.Round(tc);
+        }
+
+
+        /*************************************************************************
+        Retrieve time in milliseconds for the stopped timer, accuracy unknown.
+        *************************************************************************/
+        public static double stimergetms(stimer t,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            alglib.ap.assert(!t.isrunning, "STimerGetMS: attempt to get time from the running timer");
+            result = t.ttotal;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Retrieve time in milliseconds for the stopped timer, accuracy unknown.
+
+        The result is returned as integer. For small running times (below 1ms or
+        below accuracy, which may be as large as 20-50ms) it is not rounded to
+        nearest integer (which is likely to be zero for submillicecond times).
+
+        Instead, a zero or non-zero value is returned. For repeated runs these
+        values average to the 'true' average of a sequence.
+        *************************************************************************/
+        public static int stimergetmsint(stimer t,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            alglib.ap.assert(!t.isrunning, "STimerGetMS: attempt to get time from the running timer");
+            result = t.ttotal;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Retrieve time in milliseconds for the running or stopped timer, accuracy unknown
+        *************************************************************************/
+        public static double stimergetmsrunning(stimer t,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            double tc = 0;
+
+            result = t.ttotal;
+            if( t.isrunning )
+            {
+                tc = unchecked((int)(System.DateTime.UtcNow.Ticks/10000))-t.tcurrent;
+                if( (double)(tc)<(double)(0) )
+                {
+                    tc = tc+4294967296.0;
+                }
+                result = result+tc;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Retrieve time in milliseconds for the running or stopped timer, accuracy unknown
+        *************************************************************************/
+        public static double stimergetmsrunningandrestart(stimer t,
+            alglib.xparams _params)
+        {
+            double result = 0;
+
+            result = stimergetmsrunning(t, _params);
+            stimerinit(t, _params);
+            stimerstart(t, _params);
+            return result;
+        }
+
+
     }
     public partial class ablasf
     {
@@ -3648,6 +4982,39 @@ public partial class alglib
             return result;
         }
         #endif
+
+
+        /*************************************************************************
+        Computes scaled dot product (S*X,S*Y) for elements [0,N) of X[] and Y[]
+
+        INPUT PARAMETERS:
+            N       -   vector length
+            X       -   array[N], vector to process
+            Y       -   array[N], vector to process
+            S       -   array[N], vector to process
+
+        RESULT:
+            (X,Y)
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static double rdotscl1v(int n,
+            double[] x,
+            double[] y,
+            double[] s,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            int i = 0;
+
+            result = 0;
+            for(i=0; i<=n-1; i++)
+            {
+                result = result+x[i]*s[i]*(y[i]*s[i]);
+            }
+            return result;
+        }
 
 
         #if ALGLIB_NO_FAST_KERNELS
@@ -3752,6 +5119,72 @@ public partial class alglib
             return result;
         }
         #endif
+
+
+        /*************************************************************************
+        Computes scaled dot product (S*X,S*X) for elements [0,N) of X[]
+
+        INPUT PARAMETERS:
+            N       -   vector length
+            X       -   array[N], vector to process
+            S       -   array[N], vector to process
+
+        RESULT:
+            (X,X)
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static double rdotscl1v2(int n,
+            double[] x,
+            double[] s,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            int i = 0;
+            double v = 0;
+
+            result = 0;
+            for(i=0; i<=n-1; i++)
+            {
+                v = x[i]*s[i];
+                result = result+v*v;
+            }
+            return result;
+        }
+
+
+        /*************************************************************************
+        Computes scaled inf-norm of X: max(|x[i]/s[i]|)
+
+        INPUT PARAMETERS:
+            N       -   vector length
+            X       -   array[N], vector to process
+            S       -   array[N], scales, S[i]<>0
+
+        RESULT:
+            (X,X)
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static double rsclnrminf(int n,
+            double[] x,
+            double[] s,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            int i = 0;
+            double v = 0;
+
+            result = 0;
+            for(i=0; i<=n-1; i++)
+            {
+                v = x[i]/s[i];
+                result = Math.Max(result, Math.Abs(v));
+            }
+            return result;
+        }
 
 
         #if ALGLIB_NO_FAST_KERNELS
@@ -4605,6 +6038,46 @@ public partial class alglib
         #endif
 
 
+        /*************************************************************************
+        Returns minimum X
+
+        INPUT PARAMETERS:
+            N       -   vector length
+            X       -   array[N], vector to process
+
+        OUTPUT PARAMETERS:
+            max(X[i])
+            zero for N=0
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static double rminv(int n,
+            double[] x,
+            alglib.xparams _params)
+        {
+            double result = 0;
+            int i = 0;
+            double v = 0;
+
+            if( n<=0 )
+            {
+                result = 0;
+                return result;
+            }
+            result = x[0];
+            for(i=1; i<=n-1; i++)
+            {
+                v = x[i];
+                if( v<result )
+                {
+                    result = v;
+                }
+            }
+            return result;
+        }
+
+
         #if ALGLIB_NO_FAST_KERNELS
         /*************************************************************************
         Returns maximum X
@@ -4886,6 +6359,68 @@ public partial class alglib
         #endif
 
 
+        /*************************************************************************
+        Sets vector X[] to V
+
+        INPUT PARAMETERS:
+            N       -   vector length
+            V       -   value to set
+            X       -   array[N]
+
+        OUTPUT PARAMETERS:
+            X       -   leading N elements are replaced by V
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static void csetv(int n,
+            complex v,
+            complex[] x,
+            alglib.xparams _params)
+        {
+            int j = 0;
+
+            for(j=0; j<=n-1; j++)
+            {
+                x[j].x = v.x;
+                x[j].y = v.y;
+            }
+        }
+
+
+        /*************************************************************************
+        Sets matrix A[] to V
+
+        INPUT PARAMETERS:
+            M, N    -   rows/cols count
+            V       -   value to set
+            A       -   array[M,N]
+
+        OUTPUT PARAMETERS:
+            A       -   leading M rows, N cols are replaced by V
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static void isetm(int m,
+            int n,
+            int v,
+            int[,] a,
+            alglib.xparams _params)
+        {
+            int i = 0;
+            int j = 0;
+
+            for(i=0; i<=m-1; i++)
+            {
+                for(j=0; j<=n-1; j++)
+                {
+                    a[i,j] = v;
+                }
+            }
+        }
+
+
         #if ALGLIB_NO_FAST_KERNELS
         /*************************************************************************
         Sets matrix A[] to V
@@ -4965,6 +6500,36 @@ public partial class alglib
           -- ALGLIB --
              Copyright 20.01.2020 by Bochkanov Sergey
         *************************************************************************/
+        public static void isetallocm(int m,
+            int n,
+            int v,
+            ref int[,] a,
+            alglib.xparams _params)
+        {
+            if( alglib.ap.rows(a)<m || alglib.ap.cols(a)<n )
+            {
+                a = new int[m, n];
+            }
+            isetm(m, n, v, a, _params);
+        }
+
+
+        /*************************************************************************
+        Sets vector A[] to V, reallocating A[] if too small.
+
+        INPUT PARAMETERS:
+            M       -   rows count
+            N       -   cols count
+            V       -   value to set
+            A       -   possibly preallocated matrix
+
+        OUTPUT PARAMETERS:
+            A       -   leading M rows, N cols are replaced by V; the matrix is
+                        reallocated if its rows/cols count is less than M/N.
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
         public static void rsetallocm(int m,
             int n,
             double v,
@@ -5000,6 +6565,31 @@ public partial class alglib
             if( alglib.ap.len(x)<n )
             {
                 x = new double[n];
+            }
+        }
+
+
+        /*************************************************************************
+        Reallocates X[] if its length is less than required value. Does not change
+        its length and contents if it is large enough.
+
+        INPUT PARAMETERS:
+            N       -   desired vector length
+            X       -   possibly preallocated array
+
+        OUTPUT PARAMETERS:
+            X       -   length(X)>=N
+
+          -- ALGLIB --
+             Copyright 20.07.2022 by Bochkanov Sergey
+        *************************************************************************/
+        public static void callocv(int n,
+            ref complex[] x,
+            alglib.xparams _params)
+        {
+            if( alglib.ap.len(x)<n )
+            {
+                x = new complex[n];
             }
         }
 
@@ -5134,6 +6724,34 @@ public partial class alglib
                 x = new bool[n];
             }
             bsetv(n, v, x, _params);
+        }
+
+
+        /*************************************************************************
+        Sets vector X[] to V, reallocating X[] if too small
+
+        INPUT PARAMETERS:
+            N       -   vector length
+            V       -   value to set
+            X       -   possibly preallocated array
+
+        OUTPUT PARAMETERS:
+            X       -   leading N elements are replaced by V; array is reallocated
+                        if its length is less than N.
+
+          -- ALGLIB --
+             Copyright 20.01.2020 by Bochkanov Sergey
+        *************************************************************************/
+        public static void csetallocv(int n,
+            complex v,
+            ref complex[] x,
+            alglib.xparams _params)
+        {
+            if( alglib.ap.len(x)<n )
+            {
+                x = new complex[n];
+            }
+            csetv(n, v, x, _params);
         }
 
 
@@ -5535,18 +7153,18 @@ public partial class alglib
             ref int[] x,
             alglib.xparams _params)
         {
-            int[] oldx = new int[0];
-            int oldn = 0;
-
+            
+            //
+            // If no growth is required, exit. Call worker function otherwise.
+            //
+            // The idea is that we call function which works with dynamic arrays
+            // (and utilizes stack unwinding) only when absolutely necessary.
+            //
             if( alglib.ap.len(x)>=newn )
             {
                 return;
             }
-            oldn = alglib.ap.len(x);
-            newn = Math.Max(newn, (int)Math.Round(1.8*oldn+1));
-            alglib.ap.swap(ref x, ref oldx);
-            x = new int[newn];
-            icopyv(oldn, oldx, x, _params);
+            igrowvinternal(newn, ref x, _params);
         }
 
 
@@ -5560,22 +7178,178 @@ public partial class alglib
           -- ALGLIB --
              Copyright 20.03.2009 by Bochkanov Sergey
         *************************************************************************/
-        public static void rgrowv(int newn,
-            ref double[] x,
+        public static void bgrowv(int newn,
+            ref bool[] x,
             alglib.xparams _params)
         {
-            double[] oldx = new double[0];
-            int oldn = 0;
-
+            
+            //
+            // If no growth is required, exit. Call worker function otherwise.
+            //
+            // The idea is that we call function which works with dynamic arrays
+            // (and utilizes stack unwinding) only when absolutely necessary.
+            //
             if( alglib.ap.len(x)>=newn )
             {
                 return;
             }
-            oldn = alglib.ap.len(x);
-            newn = Math.Max(newn, (int)Math.Round(1.8*oldn+1));
-            alglib.ap.swap(ref x, ref oldx);
-            x = new double[newn];
-            rcopyv(oldn, oldx, x, _params);
+            bgrowvinternal(newn, ref x, _params);
+        }
+
+
+        /*************************************************************************
+        Grows X, i.e. changes its size in such a way that:
+        a) contents is preserved
+        b) new size is at least N
+        c) actual size can be larger than N, so subsequent grow() calls can return
+           without reallocation
+
+          -- ALGLIB --
+             Copyright 07.06.2023 by Bochkanov Sergey
+        *************************************************************************/
+        public static void rgrowv(int newn,
+            ref double[] x,
+            alglib.xparams _params)
+        {
+            
+            //
+            // If no growth is required, exit. Call worker function otherwise.
+            //
+            // The idea is that we call function which works with dynamic arrays
+            // (and utilizes stack unwinding) only when absolutely necessary.
+            //
+            if( alglib.ap.len(x)>=newn )
+            {
+                return;
+            }
+            rgrowvinternal(newn, ref x, _params);
+        }
+
+
+        /*************************************************************************
+        Grows X by calling rGrowV() and sets the element X[NewN-1] to the specified
+        value
+
+          -- ALGLIB --
+             Copyright 07.09.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static void rgrowappendv(int newn,
+            ref double[] x,
+            double v,
+            alglib.xparams _params)
+        {
+            rgrowv(newn, ref x, _params);
+            x[newn-1] = v;
+        }
+
+
+        /*************************************************************************
+        Grows X by calling iGrowV() and sets the element X[NewN-1] to the specified
+        value
+
+          -- ALGLIB --
+             Copyright 07.09.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static void igrowappendv(int newn,
+            ref int[] x,
+            int v,
+            alglib.xparams _params)
+        {
+            igrowv(newn, ref x, _params);
+            x[newn-1] = v;
+        }
+
+
+        /*************************************************************************
+        Grows X by calling bGrowV() and sets the element X[NewN-1] to the specified
+        value
+
+          -- ALGLIB --
+             Copyright 07.09.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static void bgrowappendv(int newn,
+            ref bool[] x,
+            bool v,
+            alglib.xparams _params)
+        {
+            bgrowv(newn, ref x, _params);
+            x[newn-1] = v;
+        }
+
+
+        /*************************************************************************
+        Appends several rows to the matrix A, so it has at least M rows, in such a
+        way that:
+
+        a) if cols(A)=ColsCnt, the new matrix row count is at  least  M,  and  the
+           former contents is preserved. This function usually increases matrix size
+           by multiplying it by approximately 2 in order to avoid frequent reallocations.
+        b) if cols(A)<>ColsCnt (including cols(A)>ColsCnt), then the matrix is
+           completely reallocated, its new size will be at least MxColsCnt, but
+           likely to be greater than that
+           
+
+          -- ALGLIB --
+             Copyright 20.03.2009 by Bochkanov Sergey
+        *************************************************************************/
+        public static void rgrowrowsfixedcolsm(int m,
+            int colscnt,
+            ref double[,] a,
+            alglib.xparams _params)
+        {
+            if( alglib.ap.cols(a)!=colscnt )
+            {
+                a = new double[(int)Math.Round(1.25*m+8), colscnt];
+                return;
+            }
+            if( alglib.ap.rows(a)<m )
+            {
+                rincreaserowsfixedcolsminternal(m, ref a, _params);
+                return;
+            }
+        }
+
+
+        /*************************************************************************
+        Appends a row to the NxColsCnt matrix A in such a way that:
+
+        a) if cols(A)=ColsCnt, the new matrix row count is at least N+1,  and  the
+           former contents is preserved. This function usually increases matrix size
+           by multiplying it by approximately 2 in order to avoid frequent reallocations.
+           If rows(A)<N, then an exception is generated.
+        b) if cols(A)<>ColsCnt (including cols(A)>ColsCnt) AND N=0, then the matrix
+           is completely reallocated, its new size will be at least 1xColsCnt, but
+           likely to be greater than that
+        c) if cols(A)<>ColsCnt (including cols(A)>ColsCnt) AND N<>0, an  exception
+           is generated
+           
+
+          -- ALGLIB --
+             Copyright 20.03.2009 by Bochkanov Sergey
+        *************************************************************************/
+        public static void rappendrowfixedcolsm(int n,
+            int colscnt,
+            ref double[,] a,
+            alglib.xparams _params)
+        {
+            if( alglib.ap.cols(a)!=colscnt )
+            {
+                if( n!=0 )
+                {
+                    alglib.ap.assert(false, "APSERV: integrity check 3225 failed");
+                }
+                a = new double[8, colscnt];
+                return;
+            }
+            if( alglib.ap.rows(a)<n )
+            {
+                alglib.ap.assert(false, "APSERV: integrity check 3827 failed");
+            }
+            if( alglib.ap.rows(a)==n )
+            {
+                rincreaserowsfixedcolsminternal(n+1, ref a, _params);
+                return;
+            }
         }
 
 
@@ -6298,12 +8072,12 @@ public partial class alglib
         *************************************************************************/
         public static bool cmatrixrank1f(int m,
             int n,
-            ref complex[,] a,
+            complex[,] a,
             int ia,
             int ja,
-            ref complex[] u,
+            complex[] u,
             int iu,
-            ref complex[] v,
+            complex[] v,
             int iv,
             alglib.xparams _params)
         {
@@ -6323,12 +8097,12 @@ public partial class alglib
         *************************************************************************/
         public static bool rmatrixrank1f(int m,
             int n,
-            ref double[,] a,
+            double[,] a,
             int ia,
             int ja,
-            ref double[] u,
+            double[] u,
             int iu,
-            ref double[] v,
+            double[] v,
             int iv,
             alglib.xparams _params)
         {
@@ -8172,6 +9946,101 @@ public partial class alglib
         }
 
 
+        /*************************************************************************
+        Internal function that actually works with dynamic arrays.
+
+          -- ALGLIB --
+             Copyright 07.06.2023 by Bochkanov Sergey
+        *************************************************************************/
+        private static void igrowvinternal(int newn,
+            ref int[] x,
+            alglib.xparams _params)
+        {
+            int[] oldx = new int[0];
+            int oldn = 0;
+
+            if( alglib.ap.len(x)>=newn )
+            {
+                return;
+            }
+            oldn = alglib.ap.len(x);
+            newn = Math.Max(newn, (int)Math.Round(1.8*oldn+1));
+            alglib.ap.swap(ref x, ref oldx);
+            x = new int[newn];
+            icopyv(oldn, oldx, x, _params);
+        }
+
+
+        /*************************************************************************
+        Internal function that actually works with dynamic arrays.
+
+          -- ALGLIB --
+             Copyright 07.06.2023 by Bochkanov Sergey
+        *************************************************************************/
+        private static void bgrowvinternal(int newn,
+            ref bool[] x,
+            alglib.xparams _params)
+        {
+            bool[] oldx = new bool[0];
+            int oldn = 0;
+
+            if( alglib.ap.len(x)>=newn )
+            {
+                return;
+            }
+            oldn = alglib.ap.len(x);
+            newn = Math.Max(newn, (int)Math.Round(1.8*oldn+1));
+            alglib.ap.swap(ref x, ref oldx);
+            x = new bool[newn];
+            bcopyv(oldn, oldx, x, _params);
+        }
+
+
+        /*************************************************************************
+        Internal function which actually works with dynamic arrays
+
+          -- ALGLIB --
+             Copyright 07.06.2023 by Bochkanov Sergey
+        *************************************************************************/
+        private static void rgrowvinternal(int newn,
+            ref double[] x,
+            alglib.xparams _params)
+        {
+            double[] oldx = new double[0];
+            int oldn = 0;
+
+            if( alglib.ap.len(x)>=newn )
+            {
+                return;
+            }
+            oldn = alglib.ap.len(x);
+            newn = Math.Max(newn, (int)Math.Round(1.8*oldn+1));
+            alglib.ap.swap(ref x, ref oldx);
+            x = new double[newn];
+            rcopyv(oldn, oldx, x, _params);
+        }
+
+
+        /*************************************************************************
+        Internal function which actually works with dynamic arrays. We need it to
+        be a separate function in order to minimize penalty associated with maintaining
+        a local dynamically allocated variable.
+
+          -- ALGLIB --
+             Copyright 20.03.2009 by Bochkanov Sergey
+        *************************************************************************/
+        private static void rincreaserowsfixedcolsminternal(int newrows,
+            ref double[,] a,
+            alglib.xparams _params)
+        {
+            double[,] olda = new double[0,0];
+
+            alglib.ap.swap(ref a, ref olda);
+            a = new double[(int)Math.Round(Math.Max(1.8*alglib.ap.rows(olda)+8, 1.25*newrows)), alglib.ap.cols(olda)];
+            rcopym(alglib.ap.rows(olda), alglib.ap.cols(olda), olda, a, _params);
+        }
+
+
         #if ALGLIB_NO_FAST_KERNELS
         /*************************************************************************
         Fast kernel (new version with AVX2/SSE2)
@@ -8326,7 +10195,7 @@ public partial class alglib
         }
 
 
-        public static void hermitianrank2update(ref complex[,] a,
+        public static void hermitianrank2update(complex[,] a,
             bool isupper,
             int i1,
             int i2,
@@ -8573,7 +10442,7 @@ public partial class alglib
              Courant Institute, Argonne National Lab, and Rice University
              September 30, 1994
         *************************************************************************/
-        public static void complexapplyreflectionfromtheleft(ref complex[,] c,
+        public static void complexapplyreflectionfromtheleft(complex[,] c,
             complex tau,
             complex[] v,
             int m1,
@@ -8650,9 +10519,9 @@ public partial class alglib
              Courant Institute, Argonne National Lab, and Rice University
              September 30, 1994
         *************************************************************************/
-        public static void complexapplyreflectionfromtheright(ref complex[,] c,
+        public static void complexapplyreflectionfromtheright(complex[,] c,
             complex tau,
-            ref complex[] v,
+            complex[] v,
             int m1,
             int m2,
             int n1,
@@ -8835,7 +10704,7 @@ public partial class alglib
         }
 
 
-        public static void symmetricrank2update(ref double[,] a,
+        public static void symmetricrank2update(double[,] a,
             bool isupper,
             int i1,
             int i2,
@@ -8910,16 +10779,16 @@ public partial class alglib
 
 
     }
-    public class ablasmkl
+    public class ablaspbl
     {
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixgermkl(int m,
+        public static bool rmatrixgerpbl(int m,
             int n,
             double[,] a,
             int ia,
@@ -8939,20 +10808,20 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool cmatrixrank1mkl(int m,
+        public static bool cmatrixrank1pbl(int m,
             int n,
-            ref complex[,] a,
+            complex[,] a,
             int ia,
             int ja,
-            ref complex[] u,
+            complex[] u,
             int iu,
-            ref complex[] v,
+            complex[] v,
             int iv,
             alglib.xparams _params)
         {
@@ -8964,13 +10833,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixrank1mkl(int m,
+        public static bool rmatrixrank1pbl(int m,
             int n,
             double[,] a,
             int ia,
@@ -8989,13 +10858,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool cmatrixmvmkl(int m,
+        public static bool cmatrixmvpbl(int m,
             int n,
             complex[,] a,
             int ia,
@@ -9003,7 +10872,7 @@ public partial class alglib
             int opa,
             complex[] x,
             int ix,
-            ref complex[] y,
+            complex[] y,
             int iy,
             alglib.xparams _params)
         {
@@ -9015,13 +10884,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixmvmkl(int m,
+        public static bool rmatrixmvpbl(int m,
             int n,
             double[,] a,
             int ia,
@@ -9041,13 +10910,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixgemvmkl(int m,
+        public static bool rmatrixgemvpbl(int m,
             int n,
             double alpha,
             double[,] a,
@@ -9069,13 +10938,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL kernel
 
           -- ALGLIB routine --
              12.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixtrsvmkl(int n,
+        public static bool rmatrixtrsvpbl(int n,
             double[,] a,
             int ia,
             int ja,
@@ -9094,13 +10963,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              01.10.2013
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixsyrkmkl(int n,
+        public static bool rmatrixsyrkpbl(int n,
             int k,
             double alpha,
             double[,] a,
@@ -9122,13 +10991,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              01.10.2013
              Bochkanov Sergey
         *************************************************************************/
-        public static bool cmatrixherkmkl(int n,
+        public static bool cmatrixherkpbl(int n,
             int k,
             double alpha,
             complex[,] a,
@@ -9150,13 +11019,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              01.10.2013
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixgemmmkl(int m,
+        public static bool rmatrixgemmpbl(int m,
             int n,
             int k,
             double alpha,
@@ -9182,13 +11051,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              01.10.2017
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixsymvmkl(int n,
+        public static bool rmatrixsymvpbl(int n,
             double alpha,
             double[,] a,
             int ia,
@@ -9209,13 +11078,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              16.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool cmatrixgemmmkl(int m,
+        public static bool cmatrixgemmpbl(int m,
             int n,
             int k,
             complex alpha,
@@ -9241,13 +11110,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              16.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool cmatrixlefttrsmmkl(int m,
+        public static bool cmatrixlefttrsmpbl(int m,
             int n,
             complex[,] a,
             int i1,
@@ -9268,13 +11137,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              16.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool cmatrixrighttrsmmkl(int m,
+        public static bool cmatrixrighttrsmpbl(int m,
             int n,
             complex[,] a,
             int i1,
@@ -9295,13 +11164,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              16.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixlefttrsmmkl(int m,
+        public static bool rmatrixlefttrsmpbl(int m,
             int n,
             double[,] a,
             int i1,
@@ -9322,13 +11191,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel
+        PBL-based kernel
 
           -- ALGLIB routine --
              16.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixrighttrsmmkl(int m,
+        public static bool rmatrixrighttrsmpbl(int m,
             int n,
             double[,] a,
             int i1,
@@ -9349,7 +11218,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE:
 
@@ -9361,7 +11230,7 @@ public partial class alglib
              16.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool spdmatrixcholeskymkl(double[,] a,
+        public static bool spdmatrixcholeskypbl(double[,] a,
             int offs,
             int n,
             bool isupper,
@@ -9376,13 +11245,13 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
           -- ALGLIB routine --
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixplumkl(ref double[,] a,
+        public static bool rmatrixplupbl(double[,] a,
             int offs,
             int m,
             int n,
@@ -9397,7 +11266,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: this function needs preallocated output/temporary arrays.
               D and E must be at least max(M,N)-wide.
@@ -9406,7 +11275,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixbdmkl(double[,] a,
+        public static bool rmatrixbdpbl(double[,] a,
             int m,
             int n,
             double[] d,
@@ -9423,7 +11292,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         If ByQ is True,  TauP is not used (can be empty array).
         If ByQ is False, TauQ is not used (can be empty array).
@@ -9432,7 +11301,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixbdmultiplybymkl(double[,] qp,
+        public static bool rmatrixbdmultiplybypbl(double[,] qp,
             int m,
             int n,
             double[] tauq,
@@ -9453,7 +11322,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: Tau must be preallocated array with at least N-1 elements.
 
@@ -9461,7 +11330,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixhessenbergmkl(double[,] a,
+        public static bool rmatrixhessenbergpbl(double[,] a,
             int n,
             double[] tau,
             alglib.xparams _params)
@@ -9474,7 +11343,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: Q must be preallocated N*N array
 
@@ -9482,7 +11351,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixhessenbergunpackqmkl(double[,] a,
+        public static bool rmatrixhessenbergunpackqpbl(double[,] a,
             int n,
             double[] tau,
             double[,] q,
@@ -9496,7 +11365,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: Tau, D, E must be preallocated arrays;
               length(E)=length(Tau)=N-1 (or larger)
@@ -9506,7 +11375,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool smatrixtdmkl(double[,] a,
+        public static bool smatrixtdpbl(double[,] a,
             int n,
             bool isupper,
             double[] tau,
@@ -9522,7 +11391,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: Q must be preallocated N*N array
 
@@ -9530,7 +11399,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool smatrixtdunpackqmkl(double[,] a,
+        public static bool smatrixtdunpackqpbl(double[,] a,
             int n,
             bool isupper,
             double[] tau,
@@ -9545,7 +11414,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: Tau, D, E must be preallocated arrays;
               length(E)=length(Tau)=N-1 (or larger)
@@ -9555,7 +11424,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool hmatrixtdmkl(complex[,] a,
+        public static bool hmatrixtdpbl(complex[,] a,
             int n,
             bool isupper,
             complex[] tau,
@@ -9571,7 +11440,7 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
         NOTE: Q must be preallocated N*N array
 
@@ -9579,7 +11448,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool hmatrixtdunpackqmkl(complex[,] a,
+        public static bool hmatrixtdunpackqpbl(complex[,] a,
             int n,
             bool isupper,
             complex[] tau,
@@ -9594,21 +11463,21 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
-        Returns True if MKL was present and handled request (MKL  completion  code
+        Returns True if PBL was present and handled request (PBL  completion  code
         is returned as separate output parameter).
 
         D and E are pre-allocated arrays with length N (both of them!). On output,
         D constraints singular values, and E is destroyed.
 
-        SVDResult is modified if and only if MKL is present.
+        SVDResult is modified if and only if PBL is present.
 
           -- ALGLIB routine --
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixbdsvdmkl(double[] d,
+        public static bool rmatrixbdsvdpbl(double[] d,
             double[] e,
             int n,
             bool isupper,
@@ -9629,9 +11498,9 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based DHSEQR kernel.
+        PBL-based DHSEQR kernel.
 
-        Returns True if MKL was present and handled request.
+        Returns True if PBL was present and handled request.
 
         WR and WI are pre-allocated arrays with length N.
         Z is pre-allocated array[N,N].
@@ -9640,7 +11509,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixinternalschurdecompositionmkl(double[,] h,
+        public static bool rmatrixinternalschurdecompositionpbl(double[,] h,
             int n,
             int tneeded,
             int zneeded,
@@ -9658,9 +11527,9 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based DTREVC kernel.
+        PBL-based DTREVC kernel.
 
-        Returns True if MKL was present and handled request.
+        Returns True if PBL was present and handled request.
 
         NOTE: this function does NOT support HOWMNY=3!!!!
 
@@ -9671,7 +11540,7 @@ public partial class alglib
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool rmatrixinternaltrevcmkl(double[,] t,
+        public static bool rmatrixinternaltrevcpbl(double[,] t,
             int n,
             int side,
             int howmny,
@@ -9689,9 +11558,9 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
-        Returns True if MKL was present and handled request (MKL  completion  code
+        Returns True if PBL was present and handled request (PBL  completion  code
         is returned as separate output parameter).
 
         D and E are pre-allocated arrays with length N (both of them!). On output,
@@ -9699,13 +11568,13 @@ public partial class alglib
 
         Z is preallocated array[N,N] for ZNeeded<>0; ignored for ZNeeded=0.
 
-        EVDResult is modified if and only if MKL is present.
+        EVDResult is modified if and only if PBL is present.
 
           -- ALGLIB routine --
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool smatrixtdevdmkl(double[] d,
+        public static bool smatrixtdevdpbl(double[] d,
             double[] e,
             int n,
             int zneeded,
@@ -9721,9 +11590,9 @@ public partial class alglib
 
 
         /*************************************************************************
-        MKL-based kernel.
+        PBL-based kernel.
 
-        Returns True if MKL was present and handled request (MKL  completion  code
+        Returns True if PBL was present and handled request (PBL  completion  code
         is returned as separate output parameter).
 
         D and E are pre-allocated arrays with length N (both of them!). On output,
@@ -9731,13 +11600,13 @@ public partial class alglib
 
         Z is preallocated array[N,N] for ZNeeded<>0; ignored for ZNeeded=0.
 
-        EVDResult is modified if and only if MKL is present.
+        EVDResult is modified if and only if PBL is present.
 
           -- ALGLIB routine --
              20.10.2014
              Bochkanov Sergey
         *************************************************************************/
-        public static bool sparsegemvcrsmkl(int opa,
+        public static bool sparsegemvcrspbl(int opa,
             int arows,
             int acols,
             double alpha,
@@ -9829,6 +11698,24 @@ public partial class alglib
             int result = 0;
 
             result = 8;
+            return result;
+        }
+
+
+        public static int getspline2dwithmissingnodesserializationcode(alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = 9;
+            return result;
+        }
+
+
+        public static int getspline1dserializationcode(alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = 10;
             return result;
         }
 
@@ -10284,12 +12171,22 @@ public partial class alglib
             int ak = 0;
             int ak1 = 0;
             double bt = 0;
+            bool isascending = new bool();
 
             
             //
             // Special cases
             //
             if( n<=1 )
+            {
+                return;
+            }
+            isascending = true;
+            for(i=1; i<=n-1; i++)
+            {
+                isascending = isascending && a[offset+i]>=a[offset+i-1];
+            }
+            if( isascending )
             {
                 return;
             }
@@ -10353,6 +12250,246 @@ public partial class alglib
                         }
                     }
                     if( at>=ak )
+                    {
+                        break;
+                    }
+                    a[p1] = at;
+                    a[p0] = ak;
+                    b[p0] = b[p1];
+                    b[p1] = bt;
+                    t = k;
+                }
+            }
+        }
+
+
+        /*************************************************************************
+        Sorting function optimized for integer keys and real labels, can be used
+        to sort middle of the array
+
+        A is sorted, and same permutations are applied to B and C.
+
+        Elements beyond [offs:offs+N-1] are not modified or referenced.
+
+        NOTES:
+            this function assumes that A[] is finite; it doesn't checks that
+            condition. All other conditions (size of input arrays, etc.) are not
+            checked too.
+
+          -- ALGLIB --
+             Copyright 11.12.2024 by Bochkanov Sergey
+        *************************************************************************/
+        public static void tagsortmiddleirr(int[] a,
+            double[] b,
+            double[] c,
+            int offset,
+            int n,
+            alglib.xparams _params)
+        {
+            int i = 0;
+            int k = 0;
+            int t = 0;
+            int tmp = 0;
+            double tmpr = 0;
+            double tmpr2 = 0;
+            int p0 = 0;
+            int p1 = 0;
+            int at = 0;
+            int ak = 0;
+            int ak1 = 0;
+            double bt = 0;
+            double ct = 0;
+
+            
+            //
+            // Special cases
+            //
+            if( n<=1 )
+            {
+                return;
+            }
+            
+            //
+            // General case, N>1: sort, update B and C
+            //
+            for(i=2; i<=n; i++)
+            {
+                t = i;
+                while( t!=1 )
+                {
+                    k = t/2;
+                    p0 = offset+k-1;
+                    p1 = offset+t-1;
+                    ak = a[p0];
+                    at = a[p1];
+                    if( ak>=at )
+                    {
+                        break;
+                    }
+                    a[p0] = at;
+                    a[p1] = ak;
+                    tmpr = b[p0];
+                    b[p0] = b[p1];
+                    b[p1] = tmpr;
+                    tmpr2 = c[p0];
+                    c[p0] = c[p1];
+                    c[p1] = tmpr2;
+                    t = k;
+                }
+            }
+            for(i=n-1; i>=1; i--)
+            {
+                p0 = offset+0;
+                p1 = offset+i;
+                tmp = a[p1];
+                a[p1] = a[p0];
+                a[p0] = tmp;
+                at = tmp;
+                tmpr = b[p1];
+                b[p1] = b[p0];
+                b[p0] = tmpr;
+                bt = tmpr;
+                tmpr2 = c[p1];
+                c[p1] = c[p0];
+                c[p0] = tmpr2;
+                ct = tmpr2;
+                t = 0;
+                while( true )
+                {
+                    k = 2*t+1;
+                    if( k+1>i )
+                    {
+                        break;
+                    }
+                    p0 = offset+t;
+                    p1 = offset+k;
+                    ak = a[p1];
+                    if( k+1<i )
+                    {
+                        ak1 = a[p1+1];
+                        if( ak1>ak )
+                        {
+                            ak = ak1;
+                            p1 = p1+1;
+                            k = k+1;
+                        }
+                    }
+                    if( at>=ak )
+                    {
+                        break;
+                    }
+                    a[p1] = at;
+                    a[p0] = ak;
+                    b[p0] = b[p1];
+                    b[p1] = bt;
+                    c[p0] = c[p1];
+                    c[p1] = ct;
+                    t = k;
+                }
+            }
+        }
+
+
+        /*************************************************************************
+        Sorting function optimized for real keys and integer labels, can be used
+        to sort middle of the array
+
+        A is sorted, and same permutations are applied to B.
+
+        NOTES:
+            this function assumes that A[] is finite; it doesn't checks that
+            condition. All other conditions (size of input arrays, etc.) are not
+            checked too.
+
+          -- ALGLIB --
+             Copyright 11.12.2008 by Bochkanov Sergey
+        *************************************************************************/
+        public static void tagsortmiddleri(double[] a,
+            int[] b,
+            int offset,
+            int n,
+            alglib.xparams _params)
+        {
+            int i = 0;
+            int k = 0;
+            int t = 0;
+            double tmpa = 0;
+            int tmpi = 0;
+            int p0 = 0;
+            int p1 = 0;
+            double at = 0;
+            double ak = 0;
+            double ak1 = 0;
+            int bt = 0;
+
+            
+            //
+            // Special cases
+            //
+            if( n<=1 )
+            {
+                return;
+            }
+            
+            //
+            // General case, N>1: sort, update B
+            //
+            for(i=2; i<=n; i++)
+            {
+                t = i;
+                while( t!=1 )
+                {
+                    k = t/2;
+                    p0 = offset+k-1;
+                    p1 = offset+t-1;
+                    ak = a[p0];
+                    at = a[p1];
+                    if( (double)(ak)>=(double)(at) )
+                    {
+                        break;
+                    }
+                    a[p0] = at;
+                    a[p1] = ak;
+                    tmpi = b[p0];
+                    b[p0] = b[p1];
+                    b[p1] = tmpi;
+                    t = k;
+                }
+            }
+            for(i=n-1; i>=1; i--)
+            {
+                p0 = offset+0;
+                p1 = offset+i;
+                tmpa = a[p1];
+                a[p1] = a[p0];
+                a[p0] = tmpa;
+                at = tmpa;
+                tmpi = b[p1];
+                b[p1] = b[p0];
+                b[p0] = tmpi;
+                bt = tmpi;
+                t = 0;
+                while( true )
+                {
+                    k = 2*t+1;
+                    if( k+1>i )
+                    {
+                        break;
+                    }
+                    p0 = offset+t;
+                    p1 = offset+k;
+                    ak = a[p1];
+                    if( k+1<i )
+                    {
+                        ak1 = a[p1+1];
+                        if( (double)(ak1)>(double)(ak) )
+                        {
+                            ak = ak1;
+                            p1 = p1+1;
+                            k = k+1;
+                        }
+                    }
+                    if( (double)(at)>=(double)(ak) )
                     {
                         break;
                     }
@@ -12756,6 +14893,754 @@ public partial class alglib
 
 
     }
+    public class apstruct
+    {
+        /*************************************************************************
+        This structure is used to store set of N possible integers, in [0,N) range.
+        The structure needs O(N) memory, independently from the actual set size.
+
+        This structure allows external code to use following fields:
+        * N - maximum set size
+        * NStored - number of elements currently in the set
+        * Items - first NStored elements are UNSORTED items
+        * LocationOf - array[N] that allows quick access by key. If item I is present
+          in the set, LocationOf[I]>=0 and stores position in Items[]  of  element
+          I, i.e. Items[LocationOf[I]]=I.
+          If item I is not present, LocationOf[I]<0.
+        *************************************************************************/
+        public class niset : apobject
+        {
+            public int n;
+            public int nstored;
+            public int[] items;
+            public int[] locationof;
+            public int iteridx;
+            public niset()
+            {
+                init();
+            }
+            public override void init()
+            {
+                items = new int[0];
+                locationof = new int[0];
+            }
+            public override alglib.apobject make_copy()
+            {
+                niset _result = new niset();
+                _result.n = n;
+                _result.nstored = nstored;
+                _result.items = (int[])items.Clone();
+                _result.locationof = (int[])locationof.Clone();
+                _result.iteridx = iteridx;
+                return _result;
+            }
+        };
+
+
+        /*************************************************************************
+        This structure is used to store K sets of N possible integers, in [0,N) each.
+        The structure needs at least O(N) temporary memory.
+
+        Storage modes:
+        * 0         default unsorted mode
+        *************************************************************************/
+        public class kniset : apobject
+        {
+            public int storagemode;
+            public int k;
+            public int n;
+            public int[] flagarray;
+            public int[] vbegin;
+            public int[] vallocated;
+            public int[] vcnt;
+            public int[] data;
+            public int dataused;
+            public int iterrow;
+            public int iteridx;
+            public kniset()
+            {
+                init();
+            }
+            public override void init()
+            {
+                flagarray = new int[0];
+                vbegin = new int[0];
+                vallocated = new int[0];
+                vcnt = new int[0];
+                data = new int[0];
+            }
+            public override alglib.apobject make_copy()
+            {
+                kniset _result = new kniset();
+                _result.storagemode = storagemode;
+                _result.k = k;
+                _result.n = n;
+                _result.flagarray = (int[])flagarray.Clone();
+                _result.vbegin = (int[])vbegin.Clone();
+                _result.vallocated = (int[])vallocated.Clone();
+                _result.vcnt = (int[])vcnt.Clone();
+                _result.data = (int[])data.Clone();
+                _result.dataused = dataused;
+                _result.iterrow = iterrow;
+                _result.iteridx = iteridx;
+                return _result;
+            }
+        };
+
+
+
+
+        public const int knisheadersize = 2;
+
+
+        /*************************************************************************
+        Initializes n-set by empty structure.
+
+        IMPORTANT: this function need O(N) time for initialization. It is recommended
+                   to reduce its usage as much as possible, and use nisClear()
+                   where possible.
+
+        INPUT PARAMETERS
+            N           -   possible set size
+            
+        OUTPUT PARAMETERS
+            SA          -   empty N-set
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void nisinitemptyslow(int n,
+            niset sa,
+            alglib.xparams _params)
+        {
+            sa.n = n;
+            sa.nstored = 0;
+            ablasf.isetallocv(n, -999999999, ref sa.locationof, _params);
+            ablasf.isetallocv(n, -999999999, ref sa.items, _params);
+        }
+
+
+        /*************************************************************************
+        Copies n-set to properly initialized target set. The target set has to  be
+        properly initialized, and it can be non-empty. If  it  is  non-empty,  its
+        contents is quickly erased before copying.
+
+        The cost of this function is O(max(SrcSize,DstSize))
+
+        INPUT PARAMETERS
+            SSrc        -   source N-set
+            SDst        -   destination N-set (has same size as SSrc)
+            
+        OUTPUT PARAMETERS
+            SDst        -   copy of SSrc
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void niscopy(niset ssrc,
+            niset sdst,
+            alglib.xparams _params)
+        {
+            int ns = 0;
+            int i = 0;
+            int k = 0;
+
+            nisclear(sdst, _params);
+            ns = ssrc.nstored;
+            for(i=0; i<=ns-1; i++)
+            {
+                k = ssrc.items[i];
+                sdst.items[i] = k;
+                sdst.locationof[k] = i;
+            }
+            sdst.nstored = ns;
+        }
+
+
+        /*************************************************************************
+        Add K-th element to the set. The element may already exist in the set.
+
+        INPUT PARAMETERS
+            SA          -   set
+            K           -   element to add, 0<=K<N.
+            
+        OUTPUT PARAMETERS
+            SA          -   modified SA
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void nisaddelement(niset sa,
+            int k,
+            alglib.xparams _params)
+        {
+            int ns = 0;
+
+            if( sa.locationof[k]>=0 )
+            {
+                return;
+            }
+            ns = sa.nstored;
+            sa.locationof[k] = ns;
+            sa.items[ns] = k;
+            sa.nstored = ns+1;
+        }
+
+
+        /*************************************************************************
+        Subtracts K-th set from the source structure
+
+        INPUT PARAMETERS
+            SA          -   set
+            Src, K      -   source kn-set and set index K
+            
+        OUTPUT PARAMETERS
+            SA          -   modified SA
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void nissubtract1(niset sa,
+            niset src,
+            alglib.xparams _params)
+        {
+            int i = 0;
+            int j = 0;
+            int loc = 0;
+            int item = 0;
+            int ns = 0;
+            int ss = 0;
+
+            ns = sa.nstored;
+            ss = src.nstored;
+            if( ss<ns )
+            {
+                for(i=0; i<=ss-1; i++)
+                {
+                    j = src.items[i];
+                    loc = sa.locationof[j];
+                    if( loc>=0 )
+                    {
+                        item = sa.items[ns-1];
+                        sa.items[loc] = item;
+                        sa.locationof[item] = loc;
+                        sa.locationof[j] = -1;
+                        ns = ns-1;
+                    }
+                }
+            }
+            else
+            {
+                i = 0;
+                while( i<ns )
+                {
+                    j = sa.items[i];
+                    loc = src.locationof[j];
+                    if( loc>=0 )
+                    {
+                        item = sa.items[ns-1];
+                        sa.items[i] = item;
+                        sa.locationof[item] = i;
+                        sa.locationof[j] = -1;
+                        ns = ns-1;
+                    }
+                    else
+                    {
+                        i = i+1;
+                    }
+                }
+            }
+            sa.nstored = ns;
+        }
+
+
+        /*************************************************************************
+        Clears set
+
+        INPUT PARAMETERS
+            SA          -   set to be cleared
+            
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void nisclear(niset sa,
+            alglib.xparams _params)
+        {
+            int i = 0;
+            int ns = 0;
+
+            ns = sa.nstored;
+            for(i=0; i<=ns-1; i++)
+            {
+                sa.locationof[sa.items[i]] = -1;
+            }
+            sa.nstored = 0;
+        }
+
+
+        /*************************************************************************
+        Counts set elements
+
+        INPUT PARAMETERS
+            SA          -   set
+            
+        RESULT
+            number of elements in SA
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static int niscount(niset sa,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            result = sa.nstored;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Compare two sets, returns True for equal sets
+
+        INPUT PARAMETERS
+            S0          -   set 0
+            S1          -   set 1, must have same parameter N as set 0
+            
+        RESULT
+            True, if sets are equal
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static bool nisequal(niset s0,
+            niset s1,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int i = 0;
+            int ns0 = 0;
+            int ns1 = 0;
+
+            result = false;
+            if( s0.n!=s1.n )
+            {
+                return result;
+            }
+            if( s0.nstored!=s1.nstored )
+            {
+                return result;
+            }
+            ns0 = s0.nstored;
+            ns1 = s1.nstored;
+            for(i=0; i<=ns0-1; i++)
+            {
+                if( s1.locationof[s0.items[i]]<0 )
+                {
+                    return result;
+                }
+            }
+            for(i=0; i<=ns1-1; i++)
+            {
+                if( s0.locationof[s1.items[i]]<0 )
+                {
+                    return result;
+                }
+            }
+            result = true;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Prepares iteration over set
+
+        INPUT PARAMETERS
+            SA          -   set
+            
+        OUTPUT PARAMETERS
+            SA          -   SA ready for repeated calls of nisEnumerate()
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void nisstartenumeration(niset sa,
+            alglib.xparams _params)
+        {
+            sa.iteridx = 0;
+        }
+
+
+        /*************************************************************************
+        Iterates over the set. Subsequent calls return True and set J to  new  set
+        item until iteration stops and False is returned.
+
+        INPUT PARAMETERS
+            SA          -   n-set
+            
+        OUTPUT PARAMETERS
+            J           -   if:
+                            * Result=True - index of element in the set
+                            * Result=False - not set
+
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static bool nisenumerate(niset sa,
+            ref int i,
+            alglib.xparams _params)
+        {
+            bool result = new bool();
+            int k = 0;
+
+            i = 0;
+
+            k = sa.iteridx;
+            if( k>=sa.nstored )
+            {
+                result = false;
+                return result;
+            }
+            i = sa.items[k];
+            sa.iteridx = k+1;
+            result = true;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Compresses internal storage, reclaiming previously dropped blocks. To be
+        used internally by kn-set modification functions.
+
+        INPUT PARAMETERS
+            SA          -   kn-set to compress
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void kniscompressstorage(kniset sa,
+            alglib.xparams _params)
+        {
+            int i = 0;
+            int blocklen = 0;
+            int setidx = 0;
+            int srcoffs = 0;
+            int dstoffs = 0;
+
+            alglib.ap.assert(sa.storagemode==0, "knisCompressStorage: unexpected storage mode");
+            srcoffs = 0;
+            dstoffs = 0;
+            while( srcoffs<sa.dataused )
+            {
+                blocklen = sa.data[srcoffs+0];
+                setidx = sa.data[srcoffs+1];
+                alglib.ap.assert(blocklen>=knisheadersize, "knisCompressStorage: integrity check 6385 failed");
+                if( setidx<0 )
+                {
+                    srcoffs = srcoffs+blocklen;
+                    continue;
+                }
+                if( srcoffs!=dstoffs )
+                {
+                    for(i=0; i<=blocklen-1; i++)
+                    {
+                        sa.data[dstoffs+i] = sa.data[srcoffs+i];
+                    }
+                    sa.vbegin[setidx] = dstoffs+knisheadersize;
+                }
+                dstoffs = dstoffs+blocklen;
+                srcoffs = srcoffs+blocklen;
+            }
+            alglib.ap.assert(srcoffs==sa.dataused, "knisCompressStorage: integrity check 9464 failed");
+            sa.dataused = dstoffs;
+        }
+
+
+        /*************************************************************************
+        Reallocates internal storage for set #SetIdx, increasing its  capacity  to
+        NewAllocated exactly. This function may invalidate internal  pointers  for
+        ALL   sets  in  the  kn-set  structure  because  it  may  perform  storage
+        compression in order to reclaim previously freed space.
+
+        INPUT PARAMETERS
+            SA          -   kn-set structure
+            SetIdx      -   set to reallocate
+            NewAllocated -  new size for the set, must be at least equal to already
+                            allocated
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void knisreallocate(kniset sa,
+            int setidx,
+            int newallocated,
+            alglib.xparams _params)
+        {
+            int oldbegin = 0;
+            int oldcnt = 0;
+            int newbegin = 0;
+            int j = 0;
+
+            alglib.ap.assert(sa.storagemode==0, "knisReallocate: unexpected storage mode");
+            if( alglib.ap.len(sa.data)<sa.dataused+knisheadersize+newallocated )
+            {
+                kniscompressstorage(sa, _params);
+                if( alglib.ap.len(sa.data)<sa.dataused+knisheadersize+newallocated )
+                {
+                    apserv.ivectorgrowto(ref sa.data, sa.dataused+knisheadersize+newallocated, _params);
+                }
+            }
+            oldbegin = sa.vbegin[setidx];
+            oldcnt = sa.vcnt[setidx];
+            newbegin = sa.dataused+knisheadersize;
+            sa.vbegin[setidx] = newbegin;
+            sa.vallocated[setidx] = newallocated;
+            sa.data[oldbegin-1] = -1;
+            sa.data[newbegin-2] = knisheadersize+newallocated;
+            sa.data[newbegin-1] = setidx;
+            sa.dataused = sa.dataused+sa.data[newbegin-2];
+            for(j=0; j<=oldcnt-1; j++)
+            {
+                sa.data[newbegin+j] = sa.data[oldbegin+j];
+            }
+        }
+
+
+        /*************************************************************************
+        Initialize kn-set using default unsorted storage mode. Elements within a
+        subset are unsorted, with possible duplicates.
+
+        INPUT PARAMETERS
+            K           -   sets count, K>0
+            N           -   set size, N>=0
+            kPrealloc   -   preallocate place per set (can be zero), >=0
+            
+        OUTPUT PARAMETERS
+            SA          -   K sets of N elements, initially empty
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void knisinitunsorted(int k,
+            int n,
+            int kprealloc,
+            kniset sa,
+            alglib.xparams _params)
+        {
+            int i = 0;
+
+            alglib.ap.assert(k>0, "knisInitUnsorted: K<=0");
+            alglib.ap.assert(n>=0, "knisInitUnsorted: N<0");
+            alglib.ap.assert(kprealloc>=0, "knisInitUnsorted: kPrealloc<0");
+            sa.storagemode = 0;
+            sa.k = k;
+            sa.n = n;
+            ablasf.isetallocv(n, -1, ref sa.flagarray, _params);
+            ablasf.isetallocv(k, kprealloc, ref sa.vallocated, _params);
+            apserv.ivectorsetlengthatleast(ref sa.vbegin, k, _params);
+            sa.vbegin[0] = knisheadersize;
+            for(i=1; i<=k-1; i++)
+            {
+                sa.vbegin[i] = sa.vbegin[i-1]+sa.vallocated[i-1]+knisheadersize;
+            }
+            sa.dataused = sa.vbegin[k-1]+sa.vallocated[k-1];
+            apserv.ivectorsetlengthatleast(ref sa.data, sa.dataused, _params);
+            for(i=0; i<=k-1; i++)
+            {
+                sa.data[sa.vbegin[i]-2] = knisheadersize+sa.vallocated[i];
+                sa.data[sa.vbegin[i]-1] = i;
+            }
+            ablasf.isetallocv(k, 0, ref sa.vcnt, _params);
+        }
+
+
+        /*************************************************************************
+        Allows direct access to internal storage  of  kn-set  structure  - returns
+        range of elements SA.Data[idxBegin...idxEnd-1] used to store K-th set
+
+        INPUT PARAMETERS
+            SA          -   kn-set
+            K           -   set index
+            
+        OUTPUT PARAMETERS
+            idxBegin,
+            idxEnd      -   half-range [idxBegin,idxEnd) of SA.Data that stores
+                            K-th set
+
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void knisdirectaccess(kniset sa,
+            int k,
+            ref int idxbegin,
+            ref int idxend,
+            alglib.xparams _params)
+        {
+            idxbegin = 0;
+            idxend = 0;
+
+            alglib.ap.assert(sa.storagemode==0, "knisDirectAccess: unexpected storage mode");
+            idxbegin = sa.vbegin[k];
+            idxend = idxbegin+sa.vcnt[k];
+        }
+
+
+        /*************************************************************************
+        Pops last element from the K-th set.
+
+        INPUT PARAMETERS
+            SA          -   kn-set; K-th set must include at least one element,
+                            otherwise an exception is generated
+            K           -   set index
+            
+        RESULT:
+            last element in K-th set
+
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static int knispoplast(kniset sa,
+            int k,
+            alglib.xparams _params)
+        {
+            int result = 0;
+            int c = 0;
+
+            alglib.ap.assert(sa.storagemode==0, "knisPopLast: unexpected storage mode");
+            c = sa.vcnt[k];
+            alglib.ap.assert(c>0, "knisDirectAccess: K-th set is empty");
+            result = sa.data[sa.vbegin[k]+c-1];
+            sa.vcnt[k] = c-1;
+            return result;
+        }
+
+
+        /*************************************************************************
+        Add K-th element to I-th set. If an element already exists in the target,
+        a duplicate entry is added.
+
+        INPUT PARAMETERS
+            SA          -   kn-set
+            I           -   set index
+            K           -   element to add
+            
+        OUTPUT PARAMETERS
+            SA          -   modified SA
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void knisaddnewelement(kniset sa,
+            int i,
+            int k,
+            alglib.xparams _params)
+        {
+            int cnt = 0;
+
+            alglib.ap.assert(sa.storagemode==0, "knisAddNewElement: unexpected storage mode");
+            cnt = sa.vcnt[i];
+            if( cnt==sa.vallocated[i] )
+            {
+                knisreallocate(sa, i, 2*sa.vallocated[i]+1, _params);
+            }
+            sa.data[sa.vbegin[i]+cnt] = k;
+            sa.vcnt[i] = cnt+1;
+        }
+
+
+        /*************************************************************************
+        Clear k-th kn-set in collection.
+
+        Freed memory is NOT reclaimed for future garbage collection.
+
+        INPUT PARAMETERS
+            SA          -   kn-set structure
+            K           -   set index
+            
+        OUTPUT PARAMETERS
+            SA          -   K-th set was cleared
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void knisclearkthnoreclaim(kniset sa,
+            int k,
+            alglib.xparams _params)
+        {
+            alglib.ap.assert(sa.storagemode==0, "knisClearKthNoReclaim: unexpected storage mode");
+            sa.vcnt[k] = 0;
+        }
+
+
+        /*************************************************************************
+        Clear k-th kn-set in collection.
+
+        Freed memory is reclaimed for future garbage collection. This function  is
+        NOT recommended if you intend to add elements to this set in some  future,
+        because every addition will result in  reallocation  of  previously  freed
+        memory. Use knsClearKthNoReclaim().
+
+        INPUT PARAMETERS
+            SA          -   kn-set structure
+            K           -   set index
+            
+        OUTPUT PARAMETERS
+            SA          -   K-th set was cleared
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static void knisclearkthreclaim(kniset sa,
+            int k,
+            alglib.xparams _params)
+        {
+            int idxbegin = 0;
+            int allocated = 0;
+
+            alglib.ap.assert(sa.storagemode==0, "knisClearKthReclaim: unexpected storage mode");
+            idxbegin = sa.vbegin[k];
+            allocated = sa.vallocated[k];
+            sa.vcnt[k] = 0;
+            if( allocated>=knisheadersize )
+            {
+                sa.data[idxbegin-2] = 2;
+                sa.data[idxbegin+0] = allocated;
+                sa.data[idxbegin+1] = -1;
+                sa.vallocated[k] = 0;
+            }
+        }
+
+
+        /*************************************************************************
+        Counts elements of K-th set of S0 (duplicates are counted as distinct elements).
+
+        INPUT PARAMETERS
+            S0          -   kn-set structure
+            K           -   set index in the structure S0
+            
+        RESULT
+            K-th set element count
+
+          -- ALGLIB PROJECT --
+             Copyright 05.10.2020 by Bochkanov Sergey.
+        *************************************************************************/
+        public static int kniscountkth(kniset s0,
+            int k,
+            alglib.xparams _params)
+        {
+            int result = 0;
+
+            alglib.ap.assert(s0.storagemode==0, "knisCountKth: unexpected storage mode");
+            result = s0.vcnt[k];
+            return result;
+        }
+
+
+    }
     public class trlinsolve
     {
         /*************************************************************************
@@ -14790,7 +17675,6 @@ public partial class alglib
                     ks = ks+k;
                 }
                 r = r+s*ks;
-                v = Math.Abs(r);
                 if( allzeros || (double)(s*n+mx)==(double)(mx) )
                 {
                     break;
@@ -14952,7 +17836,7 @@ public partial class alglib
                 _result.fmax = fmax;
                 _result.nfev = nfev;
                 _result.info = info;
-                _result.rstate = (rcommstate)rstate.make_copy();
+                _result.rstate = rstate!=null ? (rcommstate)rstate.make_copy() : null;
                 return _result;
             }
         };
@@ -15581,7 +18465,7 @@ public partial class alglib
             else
             {
                 n = 359;
-                v = -58;
+                v = -58.0;
             }
             if( state.rstate.stage==0 )
             {
@@ -16667,7 +19551,7 @@ public partial class alglib
                 _result.buffer = (double[])buffer.Clone();
                 _result.precr = (double[])precr.Clone();
                 _result.preci = (double[])preci.Clone();
-                _result.bluesteinpool = (alglib.smp.shared_pool)bluesteinpool.make_copy();
+                _result.bluesteinpool = bluesteinpool!=null ? (alglib.smp.shared_pool)bluesteinpool.make_copy() : null;
                 return _result;
             }
         };
@@ -17555,7 +20439,6 @@ public partial class alglib
             int parentsize = 0;
             int childsize = 0;
             int chunksize = 0;
-            int lastchunksize = 0;
             apserv.srealarray bufa = null;
             apserv.srealarray bufb = null;
             apserv.srealarray bufc = null;
@@ -17595,11 +20478,6 @@ public partial class alglib
                     alglib.ap.assert(plan.entries[rowidx+param0,coltype]==opstart, "FTApplySubPlan: incorrect child subplan header");
                     alglib.ap.assert(parentsize==childsize, "FTApplySubPlan: incorrect child subplan header");
                     chunksize = Math.Max(recursivethreshold/childsize, 1);
-                    lastchunksize = operandscnt%chunksize;
-                    if( lastchunksize==0 )
-                    {
-                        lastchunksize = chunksize;
-                    }
                     i = 0;
                     while( i<operandscnt )
                     {
