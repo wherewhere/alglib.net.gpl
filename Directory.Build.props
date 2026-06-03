@@ -1,0 +1,44 @@
+<Project>
+
+  <PropertyGroup>
+    <Authors>https://www.alglib.net/</Authors>
+    <Company>ALGLIB Project</Company>
+    <ContinuousIntegrationBuild>True</ContinuousIntegrationBuild>
+    <Copyright>ALGLIB Project</Copyright>
+    <Description>ALGLIB is a cross-platform numerical analysis and data processing library</Description>
+    <Deterministic>True</Deterministic>
+    <EmbedUntrackedSources>True</EmbedUntrackedSources>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <IncludeSymbols>True</IncludeSymbols>
+    <LangVersion>latest</LangVersion>
+    <PackageIconUrl>https://raw.githubusercontent.com/wherewhere/alglib.net.gpl/main/logo.png</PackageIconUrl>
+    <PackageProjectUrl>https://www.alglib.net/</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>https://github.com/wherewhere/alglib.net.gpl/releases</PackageReleaseNotes>
+    <PackageTags>numerical-analysis data-processing</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>True</PublishRepositoryUrl>
+    <RepositoryUrl>https://github.com/wherewhere/alglib.net.gpl</RepositoryUrl>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Title>alglib.net</Title>
+    <Version>3.19.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'uap10.0.15138.0'">
+    <DefineConstants>$(DefineConstants);UAP10_0_15138_0</DefineConstants>
+    <TargetPlatformMinVersion>10.0.15138.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'uap'))">
+    <CopyLocalLockFileAssemblies>False</CopyLocalLockFileAssemblies>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <DefineConstants>$(DefineConstants);NETCORE;NETCORE_5_0;NETFX_CORE;WINDOWS_UWP;UAP10_0</DefineConstants>
+    <LanguageTargets>$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets</LanguageTargets>
+    <NugetTargetMoniker>UAP,Version=v10.0</NugetTargetMoniker>
+    <TargetFrameworkIdentifier>.NETCore</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion>10.0.22621.0</TargetPlatformVersion>
+  </PropertyGroup>
+
+</Project>
