@@ -16,6 +16,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
     <Product>ALGLIB for C# (managed)</Product>
+    <Title>alglib.net</Title>
   </PropertyGroup>
 
   <ItemGroup>

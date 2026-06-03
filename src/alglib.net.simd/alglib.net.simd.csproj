@@ -18,6 +18,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
     <Product>ALGLIB for C# (unsafe with NET5 SIMD intrinsics)</Product>
+    <Title>alglib.net</Title>
   </PropertyGroup>
 
   <ItemGroup>

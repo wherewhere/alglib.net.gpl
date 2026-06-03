@@ -11,7 +11,7 @@
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <IncludeSymbols>True</IncludeSymbols>
     <LangVersion>latest</LangVersion>
-    <PackageIconUrl>https://raw.githubusercontent.com/wherewhere/alglib.net.gpl/main/logo.png</PackageIconUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/wherewhere/alglib.net.gpl/myget/src/alglib.net/images/icon.png</PackageIconUrl>
     <PackageProjectUrl>https://www.alglib.net/</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>https://github.com/wherewhere/alglib.net.gpl/releases</PackageReleaseNotes>
