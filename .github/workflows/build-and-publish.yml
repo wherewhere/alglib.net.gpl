@@ -1,0 +1,52 @@
+name: build and publish
+
+on:
+  push:
+    branches: [myget]
+  pull_request:
+    branches: [myget]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: 10.0.x # The .NET SDK version to use
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+    env:
+      Solution_Name: alglib.net.sln
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core App
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Install Dependencies
+        run: msbuild $env:Solution_Name /m /t:Restore
+
+      - name: Pack
+        run: msbuild $env:Solution_Name /m /t:Pack /p:Configuration=Release /p:PackageOutputPath=../../nugets
+
+      - name: Publish
+        if: ${{ github.event_name == 'push' && github.ref_name == 'myget' }}
+        run: dotnet nuget push nugets/**.nupkg --source $env:NUGET_SOURCE --skip-duplicate --api-key $env:MYGET_KEY
+        env:
+          NUGET_SOURCE: https://www.myget.org/F/where/api/v3/index.json
+          MYGET_KEY: ${{ secrets.MYGET_KEY }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v6
+        with:
+          name: Nuget Package
+          path: nugets/**
