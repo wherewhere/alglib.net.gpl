@@ -1,10 +1,10 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/xr1b6um13ox74o5r?svg=true)](https://ci.appveyor.com/project/dariogriffo/alglib-net-gpl)
-[![NuGet](https://img.shields.io/nuget/v/alglib.net.svg?style=flat)](https://www.nuget.org/packages/alglib.net/) 
-[![NuGet SIMD](https://img.shields.io/nuget/v/alglib.net.svg?style=flat)](https://www.nuget.org/packages/alglib.net.simd/) 
-[![GitHub license](https://img.shields.io/github/license/dariogriffo/alglib.net.gpl.svg)](https://github.com/dariogriffo/alglib.net.gpl/blob/master/LICENSE)
-
 # alglib.net.gpl
 A public mirror for https://www.alglib.net/
+
+[![NuGet](https://img.shields.io/myget/where/v/alglib.net?label=alglib.net)](https://www.myget.org/feed/where/package/nuget/alglib.net)
+[![NuGet SIMD](https://img.shields.io/myget/where/v/alglib.net.simd?label=alglib.net.simd)](https://www.myget.org/feed/where/package/nuget/alglib.net.simd)  
+[![Build status](https://github.com/wherewhere/alglib.net.gpl/actions/workflows/build-and-publish.yml/badge.svg)](https://github.com/wherewhere/alglib.net.gpl/actions/workflows/build-and-publish.yml)
+[![GitHub license](https://img.shields.io/github/license/wherewhere/alglib.net.gpl.svg)](https://github.com/dariogriffo/alglib.net.gpl/blob/master/LICENSE)
 
 ALGLIB is a cross-platform numerical analysis and data mining library. It supports several programming languages (C++, C#, Delphi, VB.NET, Python) and several operating systems (Windows, *nix family).
 
