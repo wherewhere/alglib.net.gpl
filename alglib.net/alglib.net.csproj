@@ -38,6 +38,19 @@
     </Otherwise>
   </Choose>
 
+  <PropertyGroup>
+    <PolySharpIncludeGeneratedTypes>
+      System.Diagnostics.CodeAnalysis.StringSyntaxAttribute
+    </PolySharpIncludeGeneratedTypes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PolySharp" Version="1.16.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="..\icon.png" Pack="true" PackagePath="$(PackageIcon)" />
     <None Include="..\README.md" Pack="true" PackagePath="$(PackageReadmeFile)" />
